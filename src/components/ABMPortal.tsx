@@ -376,7 +376,7 @@ export default function ABM() {
           <p style={{ color: C.textDim, margin: "0 0 18px", fontSize: 12 }}>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 18 }}>
             <Stat label="Active Clients" value="15" sub="+2 this month" icon="leads" color={C.accent} glow={C.accentGlow} />
-            <Stat label="Hot Leads" value={LEADS.filter((l) => l.status === "hot").length} sub="Needs follow-up" icon="fire" color={C.hot} glow={C.hotGlow} />
+            <Stat label="Hot Leads" value={dbLeads.filter((l) => l.status === "hot").length} sub="Needs follow-up" icon="fire" color={C.hot} glow={C.hotGlow} />
             <Stat label="Hit Rate" value="38%" sub="18/47 placed" icon="trending" color={C.accent} glow={C.accentGlow} />
             <Stat label="Mentions" value="340" sub="March 2026" icon="monitor" color={C.blue} glow={C.blueGlow} />
           </div>
@@ -517,7 +517,7 @@ export default function ABM() {
         {tab === "pressrelease" && <div style={{ padding: 24, maxWidth: 900 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Press Release Writer</h1>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
-            <Select value={prClient} onChange={setPrClient} options={LEADS.map((l) => ({ value: l.name, label: l.name }))} placeholder="Select client..." />
+            <Select value={prClient} onChange={setPrClient} options={dbLeads.map((l) => ({ value: l.name, label: l.name }))} placeholder="Select client..." />
             <div style={{ marginTop: 10 }}><TA value={prBrief} onChange={setPrBrief} placeholder="What's the news?" rows={3} /></div>
             <div style={{ marginTop: 10 }}>
               <Btn primary onClick={() => { setPrLoading(true); setTimeout(() => { setPrResult(`FOR IMMEDIATE RELEASE\n\n${prClient} Announces Major Development\n\nNEW ORLEANS, LA — ${prBrief}\n\nThis is a generated press release template. Connect Lovable Cloud for AI-powered generation.`); setPrLoading(false); }, 1500); }} disabled={prLoading || !prClient || !prBrief}>
