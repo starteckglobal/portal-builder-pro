@@ -178,6 +178,26 @@ const DECK_TPLS = [
 // ─── MAIN APP ───────────────────────────────────────────────
 export default function ABM() {
   const { signOut, user } = useAuth();
+  
+  // ─── DATABASE HOOKS ─────────────────────────────────────
+  const { data: dbLeads = [], isLoading: leadsLoading } = useLeads();
+  const { data: dbContacts = [], isLoading: contactsLoading } = useContacts();
+  const { data: dbCoverage = [], isLoading: coverageLoading } = useCoverage();
+  const { data: dbKanbanCards = [] } = useKanbanCards();
+  const updateKanbanCard = useUpdateKanbanCard();
+  const { data: dbNotifications = [] } = useNotifications();
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
+
+  // Seed data on first login
+  const [seeded, setSeeded] = useState(false);
+  useEffect(() => {
+    if (user && !seeded) {
+      seedDataForUser(user.id).then(() => setSeeded(true));
+    }
+  }, [user, seeded]);
+
+  // ─── LOCAL UI STATE ─────────────────────────────────────
   const [tab, setTab] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [leadFilter, setLeadFilter] = useState("all");
@@ -200,21 +220,8 @@ export default function ABM() {
   const [imgPrompt, setImgPrompt] = useState("");
   const [imgLoading, setImgLoading] = useState(false);
   const [imgConcepts, setImgConcepts] = useState<any[]>([]);
-  const [notifications, setNotifications] = useState([
-    { id: 1, type: "crisis", title: "Crisis Alert", msg: "Gulf South story may break", read: false, time: "8:00 AM", priority: "urgent" },
-    { id: 2, type: "deadline", title: "Deadline", msg: "Press release due 3PM", read: false, time: "9:00 AM", priority: "high" },
-    { id: 3, type: "coverage", title: "Coverage Win", msg: "Crescent City in LA Cookin'", read: false, time: "10:22 AM", priority: "normal" },
-    { id: 4, type: "approval", title: "Approval Needed", msg: "Film Commission release v2", read: false, time: "10:45 AM", priority: "high" },
-  ]);
   const [showNotifs, setShowNotifs] = useState(false);
-  const [kanban, setKanban] = useState<Record<string, any[]>>({
-    draft: [{ id: 1, title: "Bayou Tech thought leadership", client: "Bayou Tech", contact: "Biz NOLA" }],
-    sent: [{ id: 2, title: "Crescent City launch", client: "Crescent City", contact: "WWL-TV" }, { id: 3, title: "Film Commission exclusive", client: "LA Film", contact: "Gambit Weekly" }],
-    followup: [{ id: 4, title: "NOLA Eats lineup", client: "NOLA Eats", contact: "Times-Pic" }],
-    placed: [{ id: 5, title: "Brewery feature", client: "Crescent City", contact: "LA Cookin'" }],
-    declined: [],
-  });
-  const [dragCard, setDragCard] = useState<number | null>(null);
+  const [dragCard, setDragCard] = useState<string | null>(null);
   const [dragFrom, setDragFrom] = useState<string | null>(null);
   const [meetingNotes, setMeetingNotes] = useState("");
   const [meetingLoading, setMeetingLoading] = useState(false);
@@ -241,6 +248,27 @@ export default function ABM() {
 
   useEffect(() => { chatEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [chatCh, msgs]);
 
+  // ─── DERIVED DATA ───────────────────────────────────────
+  const kanban = useMemo(() => {
+    const cols: Record<string, any[]> = { draft: [], sent: [], followup: [], placed: [], declined: [] };
+    dbKanbanCards.forEach((card) => {
+      if (cols[card.column_name]) cols[card.column_name].push(card);
+    });
+    return cols;
+  }, [dbKanbanCards]);
+
+  const sentimentData = useMemo(() => {
+    const total = dbCoverage.length || 1;
+    const pos = dbCoverage.filter((c) => c.sentiment === "positive").length;
+    const neg = dbCoverage.filter((c) => c.sentiment === "negative").length;
+    const neu = total - pos - neg;
+    return [
+      { name: "Positive", value: Math.round((pos / total) * 100), color: C.accent },
+      { name: "Neutral", value: Math.round((neu / total) * 100), color: C.blue },
+      { name: "Negative", value: Math.round((neg / total) * 100), color: C.hot },
+    ];
+  }, [dbCoverage]);
+
   // ─── HANDLERS ───────────────────────────────────────────
   const sendMsg = () => {
     if (!chatInput.trim()) return;
@@ -250,23 +278,19 @@ export default function ABM() {
 
   const dropOnCol = (toCol: string) => {
     if (!dragCard || !dragFrom || dragFrom === toCol) return;
-    setKanban((prev) => {
-      const card = prev[dragFrom].find((c: any) => c.id === dragCard);
-      if (!card) return prev;
-      return { ...prev, [dragFrom]: prev[dragFrom].filter((c: any) => c.id !== dragCard), [toCol]: [...prev[toCol], card] };
-    });
+    updateKanbanCard.mutate({ id: dragCard, column_name: toCol });
     setDragCard(null);
     setDragFrom(null);
   };
 
-  const healthScores = LEADS.filter((l) => l.status !== "cold").map((l) => ({
+  const healthScores = useMemo(() => dbLeads.filter((l) => l.status !== "cold").map((l) => ({
     name: l.name,
     score: calcHealth({ placements: Math.floor(Math.random() * 6) + 1, sentiment: 85, overdue: Math.floor(Math.random() * 3), daysSince: Math.floor(Math.random() * 10) + 1, hitRate: 38 }),
-  }));
+  })), [dbLeads]);
 
   const roi = calcROI(parseFloat(roiRetainer) || 0, parseFloat(roiAdValue) || 0, parseInt(roiMonths) || 1);
-  const unreadCount = notifications.filter((n) => !n.read).length;
-  const fLeads = LEADS.filter((l) => leadFilter === "all" || l.status === leadFilter);
+  const unreadCount = dbNotifications.filter((n) => !n.read).length;
+  const fLeads = dbLeads.filter((l) => leadFilter === "all" || l.status === leadFilter);
 
   const NAV = [
     { id: "dashboard", label: "Dashboard", icon: "dashboard" }, { id: "leads", label: "Leads CRM", icon: "leads" },
