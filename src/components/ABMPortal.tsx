@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import abmLogo from "@/assets/abm-logo.png";
+import { useAuth } from "@/contexts/AuthContext";
 
 // ─── THEME ──────────────────────────────────────────────────
 const C = {
@@ -201,6 +202,7 @@ const DECK_TPLS = [
 
 // ─── MAIN APP ───────────────────────────────────────────────
 export default function ABM() {
+  const { signOut, user } = useAuth();
   const [tab, setTab] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [leadFilter, setLeadFilter] = useState("all");
@@ -328,6 +330,16 @@ export default function ABM() {
             </button>
           ))}
         </nav>
+        <div style={{ padding: collapsed ? "8px 4px" : "8px 10px", borderTop: `1px solid ${C.border}` }}>
+          {!collapsed && <div style={{ fontSize: 9, color: C.textMuted, marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>}
+          <button onClick={signOut} style={{
+            width: "100%", padding: "6px 8px", borderRadius: 6, border: `1px solid ${C.border}`,
+            background: "transparent", color: C.hot, fontSize: 10, cursor: "pointer",
+            fontFamily: F.body, display: "flex", alignItems: "center", gap: 6, justifyContent: collapsed ? "center" : "flex-start",
+          }}>
+            {collapsed ? "✕" : "Sign Out"}
+          </button>
+        </div>
       </aside>
 
       {/* MAIN */}
