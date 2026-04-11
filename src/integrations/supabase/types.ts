@@ -14,7 +14,198 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contacts: {
+        Row: {
+          beat: string | null
+          created_at: string
+          id: string
+          last_pitch: string | null
+          name: string
+          outlet: string | null
+          relationship: string | null
+          response: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          beat?: string | null
+          created_at?: string
+          id?: string
+          last_pitch?: string | null
+          name: string
+          outlet?: string | null
+          relationship?: string | null
+          response?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          beat?: string | null
+          created_at?: string
+          id?: string
+          last_pitch?: string | null
+          name?: string
+          outlet?: string | null
+          relationship?: string | null
+          response?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      coverage: {
+        Row: {
+          client: string | null
+          created_at: string
+          date: string | null
+          id: string
+          outlet: string
+          reach: string | null
+          sentiment: string | null
+          title: string
+          type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client?: string | null
+          created_at?: string
+          date?: string | null
+          id?: string
+          outlet: string
+          reach?: string | null
+          sentiment?: string | null
+          title: string
+          type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client?: string | null
+          created_at?: string
+          date?: string | null
+          id?: string
+          outlet?: string
+          reach?: string | null
+          sentiment?: string | null
+          title?: string
+          type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kanban_cards: {
+        Row: {
+          client: string | null
+          column_name: string
+          contact: string | null
+          created_at: string
+          id: string
+          position: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client?: string | null
+          column_name?: string
+          contact?: string | null
+          created_at?: string
+          id?: string
+          position?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client?: string | null
+          column_name?: string
+          contact?: string | null
+          created_at?: string
+          id?: string
+          position?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          contact: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          score: number | null
+          status: string
+          updated_at: string
+          user_id: string
+          value: string | null
+        }
+        Insert: {
+          contact?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          score?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          value?: string | null
+        }
+        Update: {
+          contact?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          score?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          msg: string | null
+          priority: string | null
+          read: boolean | null
+          time: string | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          msg?: string | null
+          priority?: string | null
+          read?: boolean | null
+          time?: string | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          msg?: string | null
+          priority?: string | null
+          read?: boolean | null
+          time?: string | null
+          title?: string
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
