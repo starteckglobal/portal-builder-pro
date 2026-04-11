@@ -390,7 +390,7 @@ export default function ABM() {
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
               <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: 1, color: C.accent }}>Sentiment Breakdown</h3>
               <ResponsiveContainer width="100%" height={160}>
-                <PieChart><Pie data={SENTIMENT_DATA} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" label={({ name, value }: any) => `${name} ${value}%`} labelLine={false}>{SENTIMENT_DATA.map((e, i) => <Cell key={i} fill={e.color} />)}</Pie><Tooltip /></PieChart>
+                <PieChart><Pie data={sentimentData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" label={({ name, value }: any) => `${name} ${value}%`} labelLine={false}>{sentimentData.map((e, i) => <Cell key={i} fill={e.color} />)}</Pie><Tooltip /></PieChart>
               </ResponsiveContainer>
             </div>
           </div>
@@ -532,8 +532,8 @@ export default function ABM() {
         {tab === "pitchemail" && <div style={{ padding: 24, maxWidth: 900 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Pitch Email Composer</h1>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
-            <Select value={emailJ} onChange={setEmailJ} options={CONTACTS.map((c) => ({ value: c.name, label: `${c.name} — ${c.outlet}` }))} placeholder="Select journalist..." />
-            {emailJ && (() => { const j = CONTACTS.find((c) => c.name === emailJ); return j ? <div style={{ background: "#0c0c0c", borderRadius: 6, padding: 8, margin: "8px 0", display: "flex", gap: 12, fontSize: 10, color: C.textDim }}><span>{j.outlet}</span><span>{j.beat}</span><Badge text={j.rel} color={j.rel === "strong" ? C.accent : C.blue} /></div> : null; })()}
+            <Select value={emailJ} onChange={setEmailJ} options={dbContacts.map((c) => ({ value: c.name, label: `${c.name} — ${c.outlet}` }))} placeholder="Select journalist..." />
+            {emailJ && (() => { const j = dbContacts.find((c) => c.name === emailJ); return j ? <div style={{ background: "#0c0c0c", borderRadius: 6, padding: 8, margin: "8px 0", display: "flex", gap: 12, fontSize: 10, color: C.textDim }}><span>{j.outlet}</span><span>{j.beat}</span><Badge text={j.rel} color={j.rel === "strong" ? C.accent : C.blue} /></div> : null; })()}
             <TA value={emailAngle} onChange={setEmailAngle} placeholder="Story angle..." rows={2} />
             <div style={{ marginTop: 10 }}>
               <Btn primary onClick={() => { setEmailLoading(true); setTimeout(() => { setEmailResult(`Subject: ${emailAngle}\n\nHi ${emailJ},\n\nI hope this finds you well. I'm reaching out with an exclusive angle...\n\nThis is a template. Connect Lovable Cloud for AI generation.`); setEmailLoading(false); }, 1500); }} disabled={emailLoading || !emailJ || !emailAngle}>
@@ -573,8 +573,8 @@ export default function ABM() {
         {tab === "medialist" && <div style={{ padding: 24, maxWidth: 1200 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Media Lists</h1>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10 }}>
-            {CONTACTS.map((c, i) => (
-              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 80px 70px 60px", alignItems: "center", padding: "9px 14px", borderBottom: i < CONTACTS.length - 1 ? `1px solid ${C.border}` : "none", fontSize: 11 }}>
+            {dbContacts.map((c, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 80px 70px 60px", alignItems: "center", padding: "9px 14px", borderBottom: i < dbContacts.length - 1 ? `1px solid ${C.border}` : "none", fontSize: 11 }}>
                 <div style={{ fontWeight: 500, color: C.white }}>{c.name}</div>
                 <div style={{ color: C.textDim }}>{c.outlet}</div>
                 <div style={{ color: C.textDim }}>{c.beat}</div>
@@ -782,13 +782,13 @@ export default function ABM() {
         {tab === "reports" && <div style={{ padding: 24, maxWidth: 900 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Report Builder</h1>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
-            <Select value={reportClient} onChange={setReportClient} options={[...new Set(COVERAGE.map((c) => c.client))].map((c) => ({ value: c, label: c }))} placeholder="Choose client..." />
+            <Select value={reportClient} onChange={setReportClient} options={[...new Set(dbCoverage.map((c) => c.client))].map((c) => ({ value: c, label: c }))} placeholder="Choose client..." />
             {reportClient && <div style={{ background: "#0c0c0c", borderRadius: 7, padding: 10, marginTop: 10, display: "flex", gap: 16 }}>
-              <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{COVERAGE.filter((c) => c.client === reportClient).length}</span><div style={{ fontSize: 9, color: C.textMuted }}>Placements</div></div>
-              <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{COVERAGE.filter((c) => c.client === reportClient).reduce((a, c) => a + parseInt(c.reach), 0).toLocaleString()}</span><div style={{ fontSize: 9, color: C.textMuted }}>Reach</div></div>
+              <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{dbCoverage.filter((c) => c.client === reportClient).length}</span><div style={{ fontSize: 9, color: C.textMuted }}>Placements</div></div>
+              <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{dbCoverage.filter((c) => c.client === reportClient).reduce((a, c) => a + parseInt(c.reach), 0).toLocaleString()}</span><div style={{ fontSize: 9, color: C.textMuted }}>Reach</div></div>
             </div>}
             <div style={{ marginTop: 10 }}>
-              <Btn primary onClick={() => { setReportLoading(true); setTimeout(() => { setReportResult(`Monthly PR Report: ${reportClient}\n\nExecutive Summary: Strong month with ${COVERAGE.filter((c) => c.client === reportClient).length} placements.\n\nConnect Lovable Cloud for full AI-generated reports.`); setReportLoading(false); }, 1500); }} disabled={reportLoading || !reportClient}>
+              <Btn primary onClick={() => { setReportLoading(true); setTimeout(() => { setReportResult(`Monthly PR Report: ${reportClient}\n\nExecutive Summary: Strong month with ${dbCoverage.filter((c) => c.client === reportClient).length} placements.\n\nConnect Lovable Cloud for full AI-generated reports.`); setReportLoading(false); }, 1500); }} disabled={reportLoading || !reportClient}>
                 <I name="sparkle" size={12} /> {reportLoading ? "..." : "Generate Report"}
               </Btn>
             </div>
@@ -800,8 +800,8 @@ export default function ABM() {
         {tab === "monitor" && <div style={{ padding: 24, maxWidth: 1200 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Media Monitor</h1>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
-            {COVERAGE.map((c, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < COVERAGE.length - 1 ? `1px solid ${C.border}` : "none" }}>
+            {dbCoverage.map((c, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < dbCoverage.length - 1 ? `1px solid ${C.border}` : "none" }}>
                 <div style={{ flex: 1 }}><div style={{ fontSize: 11, fontWeight: 500, color: C.white }}>{c.title}</div><div style={{ fontSize: 9, color: C.textDim }}>{c.outlet} · {c.client} · {c.reach}</div></div>
                 <Badge text={c.sentiment} color={c.sentiment === "positive" ? C.accent : C.blue} />
               </div>
@@ -813,19 +813,19 @@ export default function ABM() {
         {tab === "portal" && <div style={{ padding: 24, maxWidth: 1100 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Client Portal</h1>
-            <Select value={portalClient} onChange={setPortalClient} options={[...new Set(COVERAGE.map((c) => c.client))].map((c) => ({ value: c, label: c }))} />
+            <Select value={portalClient} onChange={setPortalClient} options={[...new Set(dbCoverage.map((c) => c.client))].map((c) => ({ value: c, label: c }))} />
           </div>
           <div style={{ background: C.accentGlow, border: `1px solid ${C.accent}30`, borderRadius: 12, padding: 18, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div><div style={{ fontSize: 15, fontFamily: F.display, fontWeight: 700, color: C.white }}>{portalClient}</div><div style={{ fontSize: 10, color: C.textDim }}>Managed by ABM PR</div></div>
             <div style={{ display: "flex", gap: 12 }}>
-              <div style={{ textAlign: "center" }}><div style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{COVERAGE.filter((c) => c.client === portalClient).length}</div><div style={{ fontSize: 8, color: C.textMuted }}>Placements</div></div>
-              <div style={{ textAlign: "center" }}><div style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{calcHealth({ placements: COVERAGE.filter((c) => c.client === portalClient).length, sentiment: 85, overdue: 1, daysSince: 3, hitRate: 38 })}</div><div style={{ fontSize: 8, color: C.textMuted }}>Health</div></div>
+              <div style={{ textAlign: "center" }}><div style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{dbCoverage.filter((c) => c.client === portalClient).length}</div><div style={{ fontSize: 8, color: C.textMuted }}>Placements</div></div>
+              <div style={{ textAlign: "center" }}><div style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{calcHealth({ placements: dbCoverage.filter((c) => c.client === portalClient).length, sentiment: 85, overdue: 1, daysSince: 3, hitRate: 38 })}</div><div style={{ fontSize: 8, color: C.textMuted }}>Health</div></div>
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
               <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 8px", color: C.accent }}>Coverage</h3>
-              {COVERAGE.filter((c) => c.client === portalClient).map((c, i) => (
+              {dbCoverage.filter((c) => c.client === portalClient).map((c, i) => (
                 <div key={i} style={{ padding: "7px 0", borderBottom: `1px solid ${C.border}` }}><div style={{ fontSize: 10, fontWeight: 500 }}>{c.title}</div><div style={{ fontSize: 9, color: C.textDim }}>{c.outlet} · {c.date}</div></div>
               ))}
             </div>
