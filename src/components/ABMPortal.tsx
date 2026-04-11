@@ -354,10 +354,10 @@ export default function ABM() {
           {showNotifs && <div style={{ position: "absolute", top: 42, right: 0, width: 320, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, maxHeight: 400, overflowY: "auto", boxShadow: "0 8px 32px rgba(0,0,0,.5)" }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: C.white, marginBottom: 8, display: "flex", justifyContent: "space-between" }}>
               Notifications
-              <button onClick={() => { setNotifications((p) => p.map((n) => ({ ...n, read: true }))); setShowNotifs(false); }} style={{ background: "none", border: "none", color: C.accent, fontSize: 10, cursor: "pointer" }}>Mark all read</button>
+              <button onClick={() => { markAllRead.mutate(); setShowNotifs(false); }} style={{ background: "none", border: "none", color: C.accent, fontSize: 10, cursor: "pointer" }}>Mark all read</button>
             </div>
-            {notifications.map((n) => (
-              <div key={n.id} onClick={() => setNotifications((p) => p.map((x) => x.id === n.id ? { ...x, read: true } : x))} style={{
+            {dbNotifications.map((n) => (
+              <div key={n.id} onClick={() => markRead.mutate(n.id)} style={{
                 padding: "8px 10px", borderRadius: 7, marginBottom: 4,
                 background: n.read ? "transparent" : C.accentGlow, cursor: "pointer",
                 borderLeft: `3px solid ${n.priority === "urgent" ? C.hot : n.priority === "high" ? C.orange : C.accent}`,
