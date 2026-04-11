@@ -139,30 +139,7 @@ const bestPitchDay = (pitches: any[]) => {
   return Object.entries(d).sort((a, b) => b[1] - a[1])[0];
 };
 
-// ─── DATA ───────────────────────────────────────────────────
-const LEADS = [
-  { id: 1, name: "Crescent City Brewing", contact: "Marcus Williams", status: "hot", value: "$18K/mo", notes: "Product launch Q3.", score: 95 },
-  { id: 2, name: "Gulf South Medical", contact: "Dr. Patricia Hayes", status: "hot", value: "$25K/mo", notes: "Crisis comms needed.", score: 92 },
-  { id: 3, name: "NOLA Eats Festival", contact: "James Dupont", status: "warm", value: "$12K", notes: "Annual event PR.", score: 74 },
-  { id: 4, name: "Bayou Tech", contact: "Aisha Monroe", status: "warm", value: "$8.5K/mo", notes: "B2B thought leadership.", score: 68 },
-  { id: 5, name: "French Quarter Hotels", contact: "Robert Tran", status: "cold", value: "$30K/mo", notes: "Tourism campaign.", score: 45 },
-  { id: 6, name: "LA Film Commission", contact: "Denise Arceneaux", status: "hot", value: "$20K/mo", notes: "Film incentive awareness.", score: 88 },
-];
-const CONTACTS = [
-  { name: "Sarah Chen", outlet: "Times-Picayune", beat: "Business", rel: "strong", lastPitch: "Apr 3", response: "positive" },
-  { name: "Mike Rodriguez", outlet: "WWL-TV", beat: "General", rel: "strong", lastPitch: "Apr 7", response: "positive" },
-  { name: "Lauren Fields", outlet: "Gambit Weekly", beat: "Food", rel: "strong", lastPitch: "Apr 5", response: "pending" },
-  { name: "David Park", outlet: "Nola.com", beat: "Entertainment", rel: "good", lastPitch: "Apr 2", response: "positive" },
-  { name: "Jasmine Hall", outlet: "WDSU", beat: "Morning", rel: "good", lastPitch: "Mar 28", response: "positive" },
-  { name: "Chris Montague", outlet: "LA Cookin'", beat: "Food", rel: "strong", lastPitch: "Apr 1", response: "positive" },
-];
-const COVERAGE = [
-  { outlet: "Louisiana Cookin'", title: "Crescent City: Homebrew to Big Name", type: "Feature", reach: "180K", sentiment: "positive", date: "Apr 8", client: "Crescent City Brewing" },
-  { outlet: "WWL-TV", title: "NOLA Eats Returns", type: "Segment", reach: "425K", sentiment: "positive", date: "Apr 7", client: "NOLA Eats Festival" },
-  { outlet: "Times-Picayune", title: "Gulf South Board Changes", type: "News", reach: "310K", sentiment: "neutral", date: "Apr 7", client: "Gulf South Medical" },
-  { outlet: "Nola.com", title: "Film Commission Record Year", type: "Feature", reach: "520K", sentiment: "positive", date: "Apr 6", client: "LA Film Commission" },
-  { outlet: "Gambit Weekly", title: "New Brewery Shakes Scene", type: "Interview", reach: "85K", sentiment: "positive", date: "Apr 5", client: "Crescent City Brewing" },
-];
+// ─── STATIC DATA (not persisted) ────────────────────────────
 const CHART_DATA = [
   { month: "Nov", coverage: 45, reach: 120 }, { month: "Dec", coverage: 52, reach: 185 },
   { month: "Jan", coverage: 68, reach: 220 }, { month: "Feb", coverage: 82, reach: 290 },
@@ -171,10 +148,6 @@ const CHART_DATA = [
 const PITCH_PERF = [
   { name: "Alicia", sent: 12, placed: 5, rate: 42 }, { name: "Marcus", sent: 18, placed: 8, rate: 44 },
   { name: "Tanya", sent: 10, placed: 3, rate: 30 }, { name: "Nina", sent: 7, placed: 2, rate: 29 },
-];
-const SENTIMENT_DATA = [
-  { name: "Positive", value: 82, color: C.accent }, { name: "Neutral", value: 12, color: C.blue },
-  { name: "Negative", value: 6, color: C.hot },
 ];
 const CHANNELS = [
   { id: "general", name: "General", unread: 3 }, { id: "pitches", name: "Pitch War Room", unread: 7 },
