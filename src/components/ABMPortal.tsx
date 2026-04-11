@@ -330,6 +330,16 @@ export default function ABM() {
             </button>
           ))}
         </nav>
+        <div style={{ padding: collapsed ? "8px 4px" : "8px 10px", borderTop: `1px solid ${C.border}` }}>
+          {!collapsed && <div style={{ fontSize: 9, color: C.textMuted, marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>}
+          <button onClick={signOut} style={{
+            width: "100%", padding: "6px 8px", borderRadius: 6, border: `1px solid ${C.border}`,
+            background: "transparent", color: C.hot, fontSize: 10, cursor: "pointer",
+            fontFamily: F.body, display: "flex", alignItems: "center", gap: 6, justifyContent: collapsed ? "center" : "flex-start",
+          }}>
+            {collapsed ? "✕" : "Sign Out"}
+          </button>
+        </div>
       </aside>
 
       {/* MAIN */}
