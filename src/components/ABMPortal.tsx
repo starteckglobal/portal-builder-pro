@@ -578,7 +578,7 @@ export default function ABM() {
                 <div style={{ fontWeight: 500, color: C.white }}>{c.name}</div>
                 <div style={{ color: C.textDim }}>{c.outlet}</div>
                 <div style={{ color: C.textDim }}>{c.beat}</div>
-                <Badge text={<Badge text={c.relationship} color={c.relationship === "strong" ? C.accent : C.blue} /> ? C.accent : C.blue} />
+                <Badge text={c.relationship} color={c.relationship === "strong" ? C.accent : C.blue} />
                 <Badge text={c.response} color={c.response === "positive" ? C.accent : C.blue} />
               </div>
             ))}
