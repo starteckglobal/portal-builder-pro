@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import abmLogo from "@/assets/abm-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLeads, useContacts, useCoverage, useKanbanCards, useUpdateKanbanCard, useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/usePortalData";
+import { seedDataForUser } from "@/lib/seedData";
 
 // ─── THEME ──────────────────────────────────────────────────
 const C = {
@@ -137,30 +139,7 @@ const bestPitchDay = (pitches: any[]) => {
   return Object.entries(d).sort((a, b) => b[1] - a[1])[0];
 };
 
-// ─── DATA ───────────────────────────────────────────────────
-const LEADS = [
-  { id: 1, name: "Crescent City Brewing", contact: "Marcus Williams", status: "hot", value: "$18K/mo", notes: "Product launch Q3.", score: 95 },
-  { id: 2, name: "Gulf South Medical", contact: "Dr. Patricia Hayes", status: "hot", value: "$25K/mo", notes: "Crisis comms needed.", score: 92 },
-  { id: 3, name: "NOLA Eats Festival", contact: "James Dupont", status: "warm", value: "$12K", notes: "Annual event PR.", score: 74 },
-  { id: 4, name: "Bayou Tech", contact: "Aisha Monroe", status: "warm", value: "$8.5K/mo", notes: "B2B thought leadership.", score: 68 },
-  { id: 5, name: "French Quarter Hotels", contact: "Robert Tran", status: "cold", value: "$30K/mo", notes: "Tourism campaign.", score: 45 },
-  { id: 6, name: "LA Film Commission", contact: "Denise Arceneaux", status: "hot", value: "$20K/mo", notes: "Film incentive awareness.", score: 88 },
-];
-const CONTACTS = [
-  { name: "Sarah Chen", outlet: "Times-Picayune", beat: "Business", rel: "strong", lastPitch: "Apr 3", response: "positive" },
-  { name: "Mike Rodriguez", outlet: "WWL-TV", beat: "General", rel: "strong", lastPitch: "Apr 7", response: "positive" },
-  { name: "Lauren Fields", outlet: "Gambit Weekly", beat: "Food", rel: "strong", lastPitch: "Apr 5", response: "pending" },
-  { name: "David Park", outlet: "Nola.com", beat: "Entertainment", rel: "good", lastPitch: "Apr 2", response: "positive" },
-  { name: "Jasmine Hall", outlet: "WDSU", beat: "Morning", rel: "good", lastPitch: "Mar 28", response: "positive" },
-  { name: "Chris Montague", outlet: "LA Cookin'", beat: "Food", rel: "strong", lastPitch: "Apr 1", response: "positive" },
-];
-const COVERAGE = [
-  { outlet: "Louisiana Cookin'", title: "Crescent City: Homebrew to Big Name", type: "Feature", reach: "180K", sentiment: "positive", date: "Apr 8", client: "Crescent City Brewing" },
-  { outlet: "WWL-TV", title: "NOLA Eats Returns", type: "Segment", reach: "425K", sentiment: "positive", date: "Apr 7", client: "NOLA Eats Festival" },
-  { outlet: "Times-Picayune", title: "Gulf South Board Changes", type: "News", reach: "310K", sentiment: "neutral", date: "Apr 7", client: "Gulf South Medical" },
-  { outlet: "Nola.com", title: "Film Commission Record Year", type: "Feature", reach: "520K", sentiment: "positive", date: "Apr 6", client: "LA Film Commission" },
-  { outlet: "Gambit Weekly", title: "New Brewery Shakes Scene", type: "Interview", reach: "85K", sentiment: "positive", date: "Apr 5", client: "Crescent City Brewing" },
-];
+// ─── STATIC DATA (not persisted) ────────────────────────────
 const CHART_DATA = [
   { month: "Nov", coverage: 45, reach: 120 }, { month: "Dec", coverage: 52, reach: 185 },
   { month: "Jan", coverage: 68, reach: 220 }, { month: "Feb", coverage: 82, reach: 290 },
@@ -169,10 +148,6 @@ const CHART_DATA = [
 const PITCH_PERF = [
   { name: "Alicia", sent: 12, placed: 5, rate: 42 }, { name: "Marcus", sent: 18, placed: 8, rate: 44 },
   { name: "Tanya", sent: 10, placed: 3, rate: 30 }, { name: "Nina", sent: 7, placed: 2, rate: 29 },
-];
-const SENTIMENT_DATA = [
-  { name: "Positive", value: 82, color: C.accent }, { name: "Neutral", value: 12, color: C.blue },
-  { name: "Negative", value: 6, color: C.hot },
 ];
 const CHANNELS = [
   { id: "general", name: "General", unread: 3 }, { id: "pitches", name: "Pitch War Room", unread: 7 },
@@ -203,6 +178,26 @@ const DECK_TPLS = [
 // ─── MAIN APP ───────────────────────────────────────────────
 export default function ABM() {
   const { signOut, user } = useAuth();
+  
+  // ─── DATABASE HOOKS ─────────────────────────────────────
+  const { data: dbLeads = [], isLoading: leadsLoading } = useLeads();
+  const { data: dbContacts = [], isLoading: contactsLoading } = useContacts();
+  const { data: dbCoverage = [], isLoading: coverageLoading } = useCoverage();
+  const { data: dbKanbanCards = [] } = useKanbanCards();
+  const updateKanbanCard = useUpdateKanbanCard();
+  const { data: dbNotifications = [] } = useNotifications();
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
+
+  // Seed data on first login
+  const [seeded, setSeeded] = useState(false);
+  useEffect(() => {
+    if (user && !seeded) {
+      seedDataForUser(user.id).then(() => setSeeded(true));
+    }
+  }, [user, seeded]);
+
+  // ─── LOCAL UI STATE ─────────────────────────────────────
   const [tab, setTab] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [leadFilter, setLeadFilter] = useState("all");
@@ -225,21 +220,8 @@ export default function ABM() {
   const [imgPrompt, setImgPrompt] = useState("");
   const [imgLoading, setImgLoading] = useState(false);
   const [imgConcepts, setImgConcepts] = useState<any[]>([]);
-  const [notifications, setNotifications] = useState([
-    { id: 1, type: "crisis", title: "Crisis Alert", msg: "Gulf South story may break", read: false, time: "8:00 AM", priority: "urgent" },
-    { id: 2, type: "deadline", title: "Deadline", msg: "Press release due 3PM", read: false, time: "9:00 AM", priority: "high" },
-    { id: 3, type: "coverage", title: "Coverage Win", msg: "Crescent City in LA Cookin'", read: false, time: "10:22 AM", priority: "normal" },
-    { id: 4, type: "approval", title: "Approval Needed", msg: "Film Commission release v2", read: false, time: "10:45 AM", priority: "high" },
-  ]);
   const [showNotifs, setShowNotifs] = useState(false);
-  const [kanban, setKanban] = useState<Record<string, any[]>>({
-    draft: [{ id: 1, title: "Bayou Tech thought leadership", client: "Bayou Tech", contact: "Biz NOLA" }],
-    sent: [{ id: 2, title: "Crescent City launch", client: "Crescent City", contact: "WWL-TV" }, { id: 3, title: "Film Commission exclusive", client: "LA Film", contact: "Gambit Weekly" }],
-    followup: [{ id: 4, title: "NOLA Eats lineup", client: "NOLA Eats", contact: "Times-Pic" }],
-    placed: [{ id: 5, title: "Brewery feature", client: "Crescent City", contact: "LA Cookin'" }],
-    declined: [],
-  });
-  const [dragCard, setDragCard] = useState<number | null>(null);
+  const [dragCard, setDragCard] = useState<string | null>(null);
   const [dragFrom, setDragFrom] = useState<string | null>(null);
   const [meetingNotes, setMeetingNotes] = useState("");
   const [meetingLoading, setMeetingLoading] = useState(false);
@@ -266,6 +248,27 @@ export default function ABM() {
 
   useEffect(() => { chatEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [chatCh, msgs]);
 
+  // ─── DERIVED DATA ───────────────────────────────────────
+  const kanban = useMemo(() => {
+    const cols: Record<string, any[]> = { draft: [], sent: [], followup: [], placed: [], declined: [] };
+    dbKanbanCards.forEach((card) => {
+      if (cols[card.column_name]) cols[card.column_name].push(card);
+    });
+    return cols;
+  }, [dbKanbanCards]);
+
+  const sentimentData = useMemo(() => {
+    const total = dbCoverage.length || 1;
+    const pos = dbCoverage.filter((c) => c.sentiment === "positive").length;
+    const neg = dbCoverage.filter((c) => c.sentiment === "negative").length;
+    const neu = total - pos - neg;
+    return [
+      { name: "Positive", value: Math.round((pos / total) * 100), color: C.accent },
+      { name: "Neutral", value: Math.round((neu / total) * 100), color: C.blue },
+      { name: "Negative", value: Math.round((neg / total) * 100), color: C.hot },
+    ];
+  }, [dbCoverage]);
+
   // ─── HANDLERS ───────────────────────────────────────────
   const sendMsg = () => {
     if (!chatInput.trim()) return;
@@ -275,23 +278,19 @@ export default function ABM() {
 
   const dropOnCol = (toCol: string) => {
     if (!dragCard || !dragFrom || dragFrom === toCol) return;
-    setKanban((prev) => {
-      const card = prev[dragFrom].find((c: any) => c.id === dragCard);
-      if (!card) return prev;
-      return { ...prev, [dragFrom]: prev[dragFrom].filter((c: any) => c.id !== dragCard), [toCol]: [...prev[toCol], card] };
-    });
+    updateKanbanCard.mutate({ id: dragCard, column_name: toCol });
     setDragCard(null);
     setDragFrom(null);
   };
 
-  const healthScores = LEADS.filter((l) => l.status !== "cold").map((l) => ({
+  const healthScores = useMemo(() => dbLeads.filter((l) => l.status !== "cold").map((l) => ({
     name: l.name,
     score: calcHealth({ placements: Math.floor(Math.random() * 6) + 1, sentiment: 85, overdue: Math.floor(Math.random() * 3), daysSince: Math.floor(Math.random() * 10) + 1, hitRate: 38 }),
-  }));
+  })), [dbLeads]);
 
   const roi = calcROI(parseFloat(roiRetainer) || 0, parseFloat(roiAdValue) || 0, parseInt(roiMonths) || 1);
-  const unreadCount = notifications.filter((n) => !n.read).length;
-  const fLeads = LEADS.filter((l) => leadFilter === "all" || l.status === leadFilter);
+  const unreadCount = dbNotifications.filter((n) => !n.read).length;
+  const fLeads = dbLeads.filter((l) => leadFilter === "all" || l.status === leadFilter);
 
   const NAV = [
     { id: "dashboard", label: "Dashboard", icon: "dashboard" }, { id: "leads", label: "Leads CRM", icon: "leads" },
@@ -355,10 +354,10 @@ export default function ABM() {
           {showNotifs && <div style={{ position: "absolute", top: 42, right: 0, width: 320, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, maxHeight: 400, overflowY: "auto", boxShadow: "0 8px 32px rgba(0,0,0,.5)" }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: C.white, marginBottom: 8, display: "flex", justifyContent: "space-between" }}>
               Notifications
-              <button onClick={() => { setNotifications((p) => p.map((n) => ({ ...n, read: true }))); setShowNotifs(false); }} style={{ background: "none", border: "none", color: C.accent, fontSize: 10, cursor: "pointer" }}>Mark all read</button>
+              <button onClick={() => { markAllRead.mutate(); setShowNotifs(false); }} style={{ background: "none", border: "none", color: C.accent, fontSize: 10, cursor: "pointer" }}>Mark all read</button>
             </div>
-            {notifications.map((n) => (
-              <div key={n.id} onClick={() => setNotifications((p) => p.map((x) => x.id === n.id ? { ...x, read: true } : x))} style={{
+            {dbNotifications.map((n) => (
+              <div key={n.id} onClick={() => markRead.mutate(n.id)} style={{
                 padding: "8px 10px", borderRadius: 7, marginBottom: 4,
                 background: n.read ? "transparent" : C.accentGlow, cursor: "pointer",
                 borderLeft: `3px solid ${n.priority === "urgent" ? C.hot : n.priority === "high" ? C.orange : C.accent}`,
@@ -377,7 +376,7 @@ export default function ABM() {
           <p style={{ color: C.textDim, margin: "0 0 18px", fontSize: 12 }}>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 18 }}>
             <Stat label="Active Clients" value="15" sub="+2 this month" icon="leads" color={C.accent} glow={C.accentGlow} />
-            <Stat label="Hot Leads" value={LEADS.filter((l) => l.status === "hot").length} sub="Needs follow-up" icon="fire" color={C.hot} glow={C.hotGlow} />
+            <Stat label="Hot Leads" value={dbLeads.filter((l) => l.status === "hot").length} sub="Needs follow-up" icon="fire" color={C.hot} glow={C.hotGlow} />
             <Stat label="Hit Rate" value="38%" sub="18/47 placed" icon="trending" color={C.accent} glow={C.accentGlow} />
             <Stat label="Mentions" value="340" sub="March 2026" icon="monitor" color={C.blue} glow={C.blueGlow} />
           </div>
@@ -391,7 +390,7 @@ export default function ABM() {
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
               <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: 1, color: C.accent }}>Sentiment Breakdown</h3>
               <ResponsiveContainer width="100%" height={160}>
-                <PieChart><Pie data={SENTIMENT_DATA} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" label={({ name, value }: any) => `${name} ${value}%`} labelLine={false}>{SENTIMENT_DATA.map((e, i) => <Cell key={i} fill={e.color} />)}</Pie><Tooltip /></PieChart>
+                <PieChart><Pie data={sentimentData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" label={({ name, value }: any) => `${name} ${value}%`} labelLine={false}>{sentimentData.map((e, i) => <Cell key={i} fill={e.color} />)}</Pie><Tooltip /></PieChart>
               </ResponsiveContainer>
             </div>
           </div>
@@ -518,7 +517,7 @@ export default function ABM() {
         {tab === "pressrelease" && <div style={{ padding: 24, maxWidth: 900 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Press Release Writer</h1>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
-            <Select value={prClient} onChange={setPrClient} options={LEADS.map((l) => ({ value: l.name, label: l.name }))} placeholder="Select client..." />
+            <Select value={prClient} onChange={setPrClient} options={dbLeads.map((l) => ({ value: l.name, label: l.name }))} placeholder="Select client..." />
             <div style={{ marginTop: 10 }}><TA value={prBrief} onChange={setPrBrief} placeholder="What's the news?" rows={3} /></div>
             <div style={{ marginTop: 10 }}>
               <Btn primary onClick={() => { setPrLoading(true); setTimeout(() => { setPrResult(`FOR IMMEDIATE RELEASE\n\n${prClient} Announces Major Development\n\nNEW ORLEANS, LA — ${prBrief}\n\nThis is a generated press release template. Connect Lovable Cloud for AI-powered generation.`); setPrLoading(false); }, 1500); }} disabled={prLoading || !prClient || !prBrief}>
@@ -533,8 +532,8 @@ export default function ABM() {
         {tab === "pitchemail" && <div style={{ padding: 24, maxWidth: 900 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Pitch Email Composer</h1>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
-            <Select value={emailJ} onChange={setEmailJ} options={CONTACTS.map((c) => ({ value: c.name, label: `${c.name} — ${c.outlet}` }))} placeholder="Select journalist..." />
-            {emailJ && (() => { const j = CONTACTS.find((c) => c.name === emailJ); return j ? <div style={{ background: "#0c0c0c", borderRadius: 6, padding: 8, margin: "8px 0", display: "flex", gap: 12, fontSize: 10, color: C.textDim }}><span>{j.outlet}</span><span>{j.beat}</span><Badge text={j.rel} color={j.rel === "strong" ? C.accent : C.blue} /></div> : null; })()}
+            <Select value={emailJ} onChange={setEmailJ} options={dbContacts.map((c) => ({ value: c.name, label: `${c.name} — ${c.outlet}` }))} placeholder="Select journalist..." />
+            {emailJ && (() => { const j = dbContacts.find((c) => c.name === emailJ); return j ? <div style={{ background: "#0c0c0c", borderRadius: 6, padding: 8, margin: "8px 0", display: "flex", gap: 12, fontSize: 10, color: C.textDim }}><span>{j.outlet}</span><span>{j.beat}</span><Badge text={j.relationshipationship} color={j.relationshipationship === "strong" ? C.accent : C.blue} /></div> : null; })()}
             <TA value={emailAngle} onChange={setEmailAngle} placeholder="Story angle..." rows={2} />
             <div style={{ marginTop: 10 }}>
               <Btn primary onClick={() => { setEmailLoading(true); setTimeout(() => { setEmailResult(`Subject: ${emailAngle}\n\nHi ${emailJ},\n\nI hope this finds you well. I'm reaching out with an exclusive angle...\n\nThis is a template. Connect Lovable Cloud for AI generation.`); setEmailLoading(false); }, 1500); }} disabled={emailLoading || !emailJ || !emailAngle}>
@@ -574,12 +573,12 @@ export default function ABM() {
         {tab === "medialist" && <div style={{ padding: 24, maxWidth: 1200 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Media Lists</h1>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10 }}>
-            {CONTACTS.map((c, i) => (
-              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 80px 70px 60px", alignItems: "center", padding: "9px 14px", borderBottom: i < CONTACTS.length - 1 ? `1px solid ${C.border}` : "none", fontSize: 11 }}>
+            {dbContacts.map((c, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 80px 70px 60px", alignItems: "center", padding: "9px 14px", borderBottom: i < dbContacts.length - 1 ? `1px solid ${C.border}` : "none", fontSize: 11 }}>
                 <div style={{ fontWeight: 500, color: C.white }}>{c.name}</div>
                 <div style={{ color: C.textDim }}>{c.outlet}</div>
                 <div style={{ color: C.textDim }}>{c.beat}</div>
-                <Badge text={c.rel} color={c.rel === "strong" ? C.accent : C.blue} />
+                <Badge text={c.relationshipationship} color={c.relationshipationship === "strong" ? C.accent : C.blue} />
                 <Badge text={c.response} color={c.response === "positive" ? C.accent : C.blue} />
               </div>
             ))}
@@ -783,13 +782,13 @@ export default function ABM() {
         {tab === "reports" && <div style={{ padding: 24, maxWidth: 900 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Report Builder</h1>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
-            <Select value={reportClient} onChange={setReportClient} options={[...new Set(COVERAGE.map((c) => c.client))].map((c) => ({ value: c, label: c }))} placeholder="Choose client..." />
+            <Select value={reportClient} onChange={setReportClient} options={[...new Set(dbCoverage.map((c) => c.client))].map((c) => ({ value: c, label: c }))} placeholder="Choose client..." />
             {reportClient && <div style={{ background: "#0c0c0c", borderRadius: 7, padding: 10, marginTop: 10, display: "flex", gap: 16 }}>
-              <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{COVERAGE.filter((c) => c.client === reportClient).length}</span><div style={{ fontSize: 9, color: C.textMuted }}>Placements</div></div>
-              <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{COVERAGE.filter((c) => c.client === reportClient).reduce((a, c) => a + parseInt(c.reach), 0).toLocaleString()}</span><div style={{ fontSize: 9, color: C.textMuted }}>Reach</div></div>
+              <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{dbCoverage.filter((c) => c.client === reportClient).length}</span><div style={{ fontSize: 9, color: C.textMuted }}>Placements</div></div>
+              <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{dbCoverage.filter((c) => c.client === reportClient).reduce((a, c) => a + parseInt(c.reach), 0).toLocaleString()}</span><div style={{ fontSize: 9, color: C.textMuted }}>Reach</div></div>
             </div>}
             <div style={{ marginTop: 10 }}>
-              <Btn primary onClick={() => { setReportLoading(true); setTimeout(() => { setReportResult(`Monthly PR Report: ${reportClient}\n\nExecutive Summary: Strong month with ${COVERAGE.filter((c) => c.client === reportClient).length} placements.\n\nConnect Lovable Cloud for full AI-generated reports.`); setReportLoading(false); }, 1500); }} disabled={reportLoading || !reportClient}>
+              <Btn primary onClick={() => { setReportLoading(true); setTimeout(() => { setReportResult(`Monthly PR Report: ${reportClient}\n\nExecutive Summary: Strong month with ${dbCoverage.filter((c) => c.client === reportClient).length} placements.\n\nConnect Lovable Cloud for full AI-generated reports.`); setReportLoading(false); }, 1500); }} disabled={reportLoading || !reportClient}>
                 <I name="sparkle" size={12} /> {reportLoading ? "..." : "Generate Report"}
               </Btn>
             </div>
@@ -801,8 +800,8 @@ export default function ABM() {
         {tab === "monitor" && <div style={{ padding: 24, maxWidth: 1200 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Media Monitor</h1>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
-            {COVERAGE.map((c, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < COVERAGE.length - 1 ? `1px solid ${C.border}` : "none" }}>
+            {dbCoverage.map((c, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < dbCoverage.length - 1 ? `1px solid ${C.border}` : "none" }}>
                 <div style={{ flex: 1 }}><div style={{ fontSize: 11, fontWeight: 500, color: C.white }}>{c.title}</div><div style={{ fontSize: 9, color: C.textDim }}>{c.outlet} · {c.client} · {c.reach}</div></div>
                 <Badge text={c.sentiment} color={c.sentiment === "positive" ? C.accent : C.blue} />
               </div>
@@ -814,19 +813,19 @@ export default function ABM() {
         {tab === "portal" && <div style={{ padding: 24, maxWidth: 1100 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Client Portal</h1>
-            <Select value={portalClient} onChange={setPortalClient} options={[...new Set(COVERAGE.map((c) => c.client))].map((c) => ({ value: c, label: c }))} />
+            <Select value={portalClient} onChange={setPortalClient} options={[...new Set(dbCoverage.map((c) => c.client))].map((c) => ({ value: c, label: c }))} />
           </div>
           <div style={{ background: C.accentGlow, border: `1px solid ${C.accent}30`, borderRadius: 12, padding: 18, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div><div style={{ fontSize: 15, fontFamily: F.display, fontWeight: 700, color: C.white }}>{portalClient}</div><div style={{ fontSize: 10, color: C.textDim }}>Managed by ABM PR</div></div>
             <div style={{ display: "flex", gap: 12 }}>
-              <div style={{ textAlign: "center" }}><div style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{COVERAGE.filter((c) => c.client === portalClient).length}</div><div style={{ fontSize: 8, color: C.textMuted }}>Placements</div></div>
-              <div style={{ textAlign: "center" }}><div style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{calcHealth({ placements: COVERAGE.filter((c) => c.client === portalClient).length, sentiment: 85, overdue: 1, daysSince: 3, hitRate: 38 })}</div><div style={{ fontSize: 8, color: C.textMuted }}>Health</div></div>
+              <div style={{ textAlign: "center" }}><div style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{dbCoverage.filter((c) => c.client === portalClient).length}</div><div style={{ fontSize: 8, color: C.textMuted }}>Placements</div></div>
+              <div style={{ textAlign: "center" }}><div style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{calcHealth({ placements: dbCoverage.filter((c) => c.client === portalClient).length, sentiment: 85, overdue: 1, daysSince: 3, hitRate: 38 })}</div><div style={{ fontSize: 8, color: C.textMuted }}>Health</div></div>
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
               <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 8px", color: C.accent }}>Coverage</h3>
-              {COVERAGE.filter((c) => c.client === portalClient).map((c, i) => (
+              {dbCoverage.filter((c) => c.client === portalClient).map((c, i) => (
                 <div key={i} style={{ padding: "7px 0", borderBottom: `1px solid ${C.border}` }}><div style={{ fontSize: 10, fontWeight: 500 }}>{c.title}</div><div style={{ fontSize: 9, color: C.textDim }}>{c.outlet} · {c.date}</div></div>
               ))}
             </div>
