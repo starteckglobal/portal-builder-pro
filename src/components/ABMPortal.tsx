@@ -202,6 +202,7 @@ const DECK_TPLS = [
 
 // ─── MAIN APP ───────────────────────────────────────────────
 export default function ABM() {
+  const { signOut, user } = useAuth();
   const [tab, setTab] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [leadFilter, setLeadFilter] = useState("all");
