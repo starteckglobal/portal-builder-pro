@@ -533,7 +533,7 @@ export default function ABM() {
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Pitch Email Composer</h1>
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
             <Select value={emailJ} onChange={setEmailJ} options={dbContacts.map((c) => ({ value: c.name, label: `${c.name} — ${c.outlet}` }))} placeholder="Select journalist..." />
-            {emailJ && (() => { const j = dbContacts.find((c) => c.name === emailJ); return j ? <div style={{ background: "#0c0c0c", borderRadius: 6, padding: 8, margin: "8px 0", display: "flex", gap: 12, fontSize: 10, color: C.textDim }}><span>{j.outlet}</span><span>{j.beat}</span><Badge text={j.relationshipationship} color={j.relationshipationship === "strong" ? C.accent : C.blue} /></div> : null; })()}
+            {emailJ && (() => { const j = dbContacts.find((c) => c.name === emailJ); return j ? <div style={{ background: "#0c0c0c", borderRadius: 6, padding: 8, margin: "8px 0", display: "flex", gap: 12, fontSize: 10, color: C.textDim }}><span>{j.outlet}</span><span>{j.beat}</span><Badge text={j.relationship} color={j.relationship === "strong" ? C.accent : C.blue} /></div> : null; })()}
             <TA value={emailAngle} onChange={setEmailAngle} placeholder="Story angle..." rows={2} />
             <div style={{ marginTop: 10 }}>
               <Btn primary onClick={() => { setEmailLoading(true); setTimeout(() => { setEmailResult(`Subject: ${emailAngle}\n\nHi ${emailJ},\n\nI hope this finds you well. I'm reaching out with an exclusive angle...\n\nThis is a template. Connect Lovable Cloud for AI generation.`); setEmailLoading(false); }, 1500); }} disabled={emailLoading || !emailJ || !emailAngle}>
@@ -578,7 +578,7 @@ export default function ABM() {
                 <div style={{ fontWeight: 500, color: C.white }}>{c.name}</div>
                 <div style={{ color: C.textDim }}>{c.outlet}</div>
                 <div style={{ color: C.textDim }}>{c.beat}</div>
-                <Badge text={c.relationshipationship} color={c.relationshipationship === "strong" ? C.accent : C.blue} />
+                <Badge text={c.relationship} color={c.relationship === "strong" ? C.accent : C.blue} />
                 <Badge text={c.response} color={c.response === "positive" ? C.accent : C.blue} />
               </div>
             ))}
