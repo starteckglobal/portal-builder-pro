@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import abmLogo from "@/assets/abm-logo.png";
+import { useAuth } from "@/contexts/AuthContext";
 
 // ─── THEME ──────────────────────────────────────────────────
 const C = {
