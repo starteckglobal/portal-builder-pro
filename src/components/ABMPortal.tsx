@@ -9,6 +9,54 @@ import DeckDashboard from "@/components/deckbuilder/DeckDashboard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+// ─── STREAMING HELPER ───────────────────────────────────────
+const streamAI = async (
+  body: Record<string, any>,
+  onDelta: (text: string) => void,
+  onDone: () => void,
+  onError: (msg: string) => void,
+) => {
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-generate`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ ...body, stream: true }),
+  });
+  if (!resp.ok) {
+    let msg = "Generation failed";
+    try { const j = await resp.json(); msg = j.error || msg; } catch {}
+    onError(msg);
+    return;
+  }
+  if (!resp.body) { onError("No response body"); return; }
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl: number;
+    while ((nl = buf.indexOf("\n")) !== -1) {
+      let line = buf.slice(0, nl);
+      buf = buf.slice(nl + 1);
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      if (!line.startsWith("data: ")) continue;
+      const json = line.slice(6).trim();
+      if (json === "[DONE]") { onDone(); return; }
+      try {
+        const parsed = JSON.parse(json);
+        const c = parsed.choices?.[0]?.delta?.content;
+        if (c) onDelta(c);
+      } catch {}
+    }
+  }
+  onDone();
+};
+
 // ─── THEME ──────────────────────────────────────────────────
 const C = {
   bg: "#080808", surface: "#0f0f0f", card: "#161616", cardH: "#1e1e1e",
