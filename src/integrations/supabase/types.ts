@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_outputs: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          inputs: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          inputs?: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          inputs?: Json | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contacts: {
         Row: {
           beat: string | null
