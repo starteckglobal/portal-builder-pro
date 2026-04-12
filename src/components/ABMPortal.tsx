@@ -870,7 +870,23 @@ export default function ABM() {
 
         {/* ═══ REPORT BUILDER ═══ */}
         {tab === "reports" && <div style={{ padding: 24, maxWidth: 900 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Report Builder</h1>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Report Builder</h1>
+            <Btn small onClick={() => setHistoryTab(historyTab === "report" ? null : "report")}><I name="notes" size={12} /> History ({aiHistory.filter(h => h.type === "report").length})</Btn>
+          </div>
+          {historyTab === "report" && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Reports</div>
+            {aiHistory.filter(h => h.type === "report").length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>}
+            {aiHistory.filter(h => h.type === "report").map(h => (
+              <div key={h.id} style={{ borderBottom: `1px solid ${C.border}`, padding: "8px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div><div style={{ fontSize: 11, fontWeight: 500, color: C.white }}>{h.title}</div><div style={{ fontSize: 9, color: C.textMuted }}>{new Date(h.created_at).toLocaleDateString()}</div></div>
+                <div style={{ display: "flex", gap: 4 }}>
+                  <Btn small onClick={() => { setReportResult(h.content); setHistoryTab(null); }}>Load</Btn>
+                  <Btn small color={C.hot} onClick={() => deleteOutput.mutate(h.id)}>✕</Btn>
+                </div>
+              </div>
+            ))}
+          </div>}
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
             <Select value={reportClient} onChange={setReportClient} options={[...new Set(dbCoverage.map((c) => c.client))].map((c) => ({ value: c, label: c }))} placeholder="Choose client..." />
             {reportClient && <div style={{ background: "#0c0c0c", borderRadius: 7, padding: 10, marginTop: 10, display: "flex", gap: 16 }}>
@@ -883,7 +899,14 @@ export default function ABM() {
                </Btn>
             </div>
           </div>
-          {(reportResult || reportLoading) && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}><pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{reportResult}{reportLoading && <span style={{ display: "inline-block", width: 6, height: 14, background: C.accent, animation: "blink 1s infinite", marginLeft: 2, verticalAlign: "text-bottom" }} />}</pre></div>}
+          {(reportResult || reportLoading) && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 4, marginBottom: 8 }}>
+              <Btn small onClick={() => navigator.clipboard?.writeText(reportResult).then(() => toast.success("Copied!"))}><I name="copy" size={11} /> Copy</Btn>
+              {reportResult && !reportLoading && <Btn small primary onClick={() => { saveOutput.mutate({ type: "report", title: `${reportClient} — Monthly Report`, content: reportResult, inputs: { client: reportClient } }); toast.success("Saved!"); }}><I name="notes" size={11} /> Save</Btn>}
+            </div>
+            <pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{reportResult}{reportLoading && <span style={{ display: "inline-block", width: 6, height: 14, background: C.accent, animation: "blink 1s infinite", marginLeft: 2, verticalAlign: "text-bottom" }} />}</pre>
+          </div>}
+        </div>}
         </div>}
 
         {/* ═══ MEDIA MONITOR ═══ */}
