@@ -907,7 +907,8 @@ export default function ABM() {
             <pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{reportResult}{reportLoading && <span style={{ display: "inline-block", width: 6, height: 14, background: C.accent, animation: "blink 1s infinite", marginLeft: 2, verticalAlign: "text-bottom" }} />}</pre>
           </div>}
         </div>}
-        </div>}
+
+
 
         {/* ═══ MEDIA MONITOR ═══ */}
         {tab === "monitor" && <div style={{ padding: 24, maxWidth: 1200 }}>
