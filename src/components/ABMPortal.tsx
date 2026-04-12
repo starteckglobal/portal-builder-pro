@@ -185,6 +185,37 @@ const Select = ({ value, onChange, options, placeholder }: any) => (
   </select>
 );
 
+const ChartCard = ({ children, title }: { children: React.ReactNode; title: string }) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: C.card, border: `1px solid ${hovered ? C.accent + "40" : C.border}`, borderRadius: 12, padding: 16,
+        transition: "transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease",
+        transform: hovered ? "translateY(-3px)" : "translateY(0)",
+        boxShadow: hovered ? `0 6px 20px ${C.accentGlow}` : "none",
+      }}
+    >
+      <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: 1, color: C.accent }}>{title}</h3>
+      {children}
+    </div>
+  );
+};
+
+const renderActiveShape = (props: any) => {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, value } = props;
+  return (
+    <g>
+      <Sector cx={cx} cy={cy} innerRadius={innerRadius - 2} outerRadius={outerRadius + 6} startAngle={startAngle} endAngle={endAngle} fill={fill} style={{ filter: `drop-shadow(0 0 6px ${fill})`, transition: "all 0.2s ease" }} />
+      <Sector cx={cx} cy={cy} innerRadius={innerRadius} outerRadius={outerRadius} startAngle={startAngle} endAngle={endAngle} fill={fill} />
+    </g>
+  );
+};
+
+const tooltipStyle = { background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 11, color: C.text, boxShadow: "0 4px 16px rgba(0,0,0,.4)" };
+
 // ─── ALGORITHMS ─────────────────────────────────────────────
 const calcROI = (retainer: number, adValue: number, months: number) => {
   const inv = retainer * months;
