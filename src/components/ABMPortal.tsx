@@ -596,7 +596,23 @@ export default function ABM() {
 
         {/* ═══ PITCH EMAIL ═══ */}
         {tab === "pitchemail" && <div style={{ padding: 24, maxWidth: 900 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Pitch Email Composer</h1>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Pitch Email Composer</h1>
+            <Btn small onClick={() => setHistoryTab(historyTab === "pitch-email" ? null : "pitch-email")}><I name="notes" size={12} /> History ({aiHistory.filter(h => h.type === "pitch-email").length})</Btn>
+          </div>
+          {historyTab === "pitch-email" && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Pitches</div>
+            {aiHistory.filter(h => h.type === "pitch-email").length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>}
+            {aiHistory.filter(h => h.type === "pitch-email").map(h => (
+              <div key={h.id} style={{ borderBottom: `1px solid ${C.border}`, padding: "8px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div><div style={{ fontSize: 11, fontWeight: 500, color: C.white }}>{h.title}</div><div style={{ fontSize: 9, color: C.textMuted }}>{new Date(h.created_at).toLocaleDateString()}</div></div>
+                <div style={{ display: "flex", gap: 4 }}>
+                  <Btn small onClick={() => { setEmailResult(h.content); setHistoryTab(null); }}>Load</Btn>
+                  <Btn small color={C.hot} onClick={() => deleteOutput.mutate(h.id)}>✕</Btn>
+                </div>
+              </div>
+            ))}
+          </div>}
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
             <Select value={emailJ} onChange={setEmailJ} options={dbContacts.map((c) => ({ value: c.name, label: `${c.name} — ${c.outlet}` }))} placeholder="Select journalist..." />
             {emailJ && (() => { const j = dbContacts.find((c) => c.name === emailJ); return j ? <div style={{ background: "#0c0c0c", borderRadius: 6, padding: 8, margin: "8px 0", display: "flex", gap: 12, fontSize: 10, color: C.textDim }}><span>{j.outlet}</span><span>{j.beat}</span><Badge text={j.relationship} color={j.relationship === "strong" ? C.accent : C.blue} /></div> : null; })()}
@@ -607,7 +623,13 @@ export default function ABM() {
                </Btn>
             </div>
           </div>
-          {(emailResult || emailLoading) && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}><pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{emailResult}{emailLoading && <span style={{ display: "inline-block", width: 6, height: 14, background: C.accent, animation: "blink 1s infinite", marginLeft: 2, verticalAlign: "text-bottom" }} />}</pre></div>}
+          {(emailResult || emailLoading) && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 4, marginBottom: 8 }}>
+              <Btn small onClick={() => navigator.clipboard?.writeText(emailResult).then(() => toast.success("Copied!"))}><I name="copy" size={11} /> Copy</Btn>
+              {emailResult && !emailLoading && <Btn small primary onClick={() => { saveOutput.mutate({ type: "pitch-email", title: `${emailJ} — ${emailAngle.slice(0, 40)}`, content: emailResult, inputs: { journalist: emailJ, angle: emailAngle } }); toast.success("Saved!"); }}><I name="notes" size={11} /> Save</Btn>}
+            </div>
+            <pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{emailResult}{emailLoading && <span style={{ display: "inline-block", width: 6, height: 14, background: C.accent, animation: "blink 1s infinite", marginLeft: 2, verticalAlign: "text-bottom" }} />}</pre>
+          </div>}
         </div>}
 
         {/* ═══ CREATIVE AI ═══ */}
