@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Sector } from "recharts";
 import abmLogo from "@/assets/abm-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLeads, useContacts, useCoverage, useKanbanCards, useUpdateKanbanCard, useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, useAIOutputs, useSaveAIOutput, useDeleteAIOutput } from "@/hooks/usePortalData";
