@@ -556,7 +556,26 @@ export default function ABM() {
 
         {/* ═══ PRESS RELEASE ═══ */}
         {tab === "pressrelease" && <div style={{ padding: 24, maxWidth: 900 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Press Release Writer</h1>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Press Release Writer</h1>
+            <Btn small onClick={() => setHistoryTab(historyTab === "press-release" ? null : "press-release")}><I name="notes" size={12} /> History ({aiHistory.filter(h => h.type === "press-release").length})</Btn>
+          </div>
+          {historyTab === "press-release" && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Press Releases</div>
+            {aiHistory.filter(h => h.type === "press-release").length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>}
+            {aiHistory.filter(h => h.type === "press-release").map(h => (
+              <div key={h.id} style={{ borderBottom: `1px solid ${C.border}`, padding: "8px 0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: C.white, cursor: "pointer" }} onClick={() => { setPrResult(h.content); const inp = h.inputs as any; if (inp?.client) setPrClient(inp.client); if (inp?.brief) setPrBrief(inp.brief); setHistoryTab(null); }}>{h.title}</div>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    <Btn small onClick={() => { setPrResult(h.content); setHistoryTab(null); }}>Load</Btn>
+                    <Btn small color={C.hot} onClick={() => deleteOutput.mutate(h.id)}>✕</Btn>
+                  </div>
+                </div>
+                <div style={{ fontSize: 9, color: C.textMuted }}>{new Date(h.created_at).toLocaleDateString()}</div>
+              </div>
+            ))}
+          </div>}
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
             <Select value={prClient} onChange={setPrClient} options={dbLeads.map((l) => ({ value: l.name, label: l.name }))} placeholder="Select client..." />
             <div style={{ marginTop: 10 }}><TA value={prBrief} onChange={setPrBrief} placeholder="What's the news?" rows={3} /></div>
@@ -566,7 +585,13 @@ export default function ABM() {
                </Btn>
             </div>
           </div>
-          {(prResult || prLoading) && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}><pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{prResult}{prLoading && <span style={{ display: "inline-block", width: 6, height: 14, background: C.accent, animation: "blink 1s infinite", marginLeft: 2, verticalAlign: "text-bottom" }} />}</pre></div>}
+          {(prResult || prLoading) && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 4, marginBottom: 8 }}>
+              <Btn small onClick={() => navigator.clipboard?.writeText(prResult).then(() => toast.success("Copied!"))}><I name="copy" size={11} /> Copy</Btn>
+              {prResult && !prLoading && <Btn small primary onClick={() => { saveOutput.mutate({ type: "press-release", title: `${prClient} — ${prBrief.slice(0, 40)}`, content: prResult, inputs: { client: prClient, brief: prBrief } }); toast.success("Saved!"); }}><I name="notes" size={11} /> Save</Btn>}
+            </div>
+            <pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{prResult}{prLoading && <span style={{ display: "inline-block", width: 6, height: 14, background: C.accent, animation: "blink 1s infinite", marginLeft: 2, verticalAlign: "text-bottom" }} />}</pre>
+          </div>}
         </div>}
 
         {/* ═══ PITCH EMAIL ═══ */}
