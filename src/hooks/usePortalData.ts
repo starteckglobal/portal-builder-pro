@@ -164,3 +164,49 @@ export function useMarkAllNotificationsRead() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
   });
 }
+
+// ─── AI OUTPUTS (history) ───────────────────────────────────
+export type AIOutput = Tables<"ai_outputs">;
+
+export function useAIOutputs(type?: string) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["ai_outputs", user?.id, type],
+    queryFn: async () => {
+      let q = supabase.from("ai_outputs").select("*").order("created_at", { ascending: false });
+      if (type) q = q.eq("type", type);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data as AIOutput[];
+    },
+    enabled: !!user,
+  });
+}
+
+export function useSaveAIOutput() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (output: { type: string; title: string; content: string; inputs?: Record<string, any> }) => {
+      const { data, error } = await supabase.from("ai_outputs").insert({
+        ...output,
+        inputs: output.inputs || {},
+        user_id: user!.id,
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ai_outputs"] }),
+  });
+}
+
+export function useDeleteAIOutput() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("ai_outputs").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ai_outputs"] }),
+  });
+}
