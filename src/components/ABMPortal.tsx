@@ -146,19 +146,33 @@ const Badge = ({ text, color }: { text: string; color: string }) => (
   }}>{text}</span>
 );
 
-const Stat = ({ label, value, sub, icon, color, glow }: any) => (
-  <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "18px 20px", position: "relative" as const, overflow: "hidden" as const }}>
-    <div style={{ position: "absolute" as const, top: -20, right: -20, width: 70, height: 70, borderRadius: "50%", background: glow, filter: "blur(25px)" }} />
-    <div style={{ display: "flex", justifyContent: "space-between" }}>
-      <div>
-        <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase" as const, letterSpacing: 1.5, marginBottom: 6 }}>{label}</div>
-        <div style={{ fontSize: 28, fontFamily: F.display, color, fontWeight: 700 }}>{value}</div>
-        {sub && <div style={{ fontSize: 11, color: C.textDim, marginTop: 3 }}>{sub}</div>}
+const Stat = ({ label, value, sub, icon, color, glow }: any) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: C.card, border: `1px solid ${hovered ? color + "40" : C.border}`, borderRadius: 12, padding: "18px 20px",
+        position: "relative" as const, overflow: "hidden" as const,
+        transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
+        transform: hovered ? "translateY(-4px)" : "translateY(0)",
+        boxShadow: hovered ? `0 8px 24px ${glow}` : "none",
+        cursor: "default",
+      }}
+    >
+      <div style={{ position: "absolute" as const, top: -20, right: -20, width: 70, height: 70, borderRadius: "50%", background: glow, filter: "blur(25px)" }} />
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div>
+          <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase" as const, letterSpacing: 1.5, marginBottom: 6 }}>{label}</div>
+          <div style={{ fontSize: 28, fontFamily: F.display, color, fontWeight: 700 }}>{value}</div>
+          {sub && <div style={{ fontSize: 11, color: C.textDim, marginTop: 3 }}>{sub}</div>}
+        </div>
+        <div style={{ color, opacity: .35 }}><I name={icon} size={24} /></div>
       </div>
-      <div style={{ color, opacity: .35 }}><I name={icon} size={24} /></div>
     </div>
-  </div>
-);
+  );
+};
 
 const Select = ({ value, onChange, options, placeholder }: any) => (
   <select value={value} onChange={(e: any) => onChange(e.target.value)} style={{
