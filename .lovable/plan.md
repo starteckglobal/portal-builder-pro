@@ -1,89 +1,48 @@
 
 
-# Deck Builder Module — Implementation Plan
+# Connect All Portal Modules to AI Generation
 
-## Overview
-Add a full Deck Builder feature to the ABM PR Portal: a new `/deck-builder` route with AI-powered slide generation, inline editing, drag-to-reorder, theme switching, and PPTX/PDF export. All data persists in the database.
+## Summary
+Replace all 8 fake `setTimeout` template generators with real AI-powered generation via Lovable Cloud edge functions. Each module currently returns hardcoded text after a 1.5s delay.
 
-## Key Design Decision
-**No Anthropic API key exists in this project.** Only `LOVABLE_API_KEY` is configured. The AI generation will use Lovable AI (via an edge function calling the Lovable AI Gateway), not Anthropic/Claude. This requires no extra setup — the key is already available.
+## Modules to Connect
 
----
+| Module | Tab ID | Current Behavior | AI Capability |
+|--------|--------|-----------------|---------------|
+| Press Release Writer | `pressrelease` | Template string | Full press release from client + brief |
+| Pitch Email Composer | `pitchemail` | Template email | Personalized pitch email using journalist context |
+| Creative AI Studio | `imagegen` | 2 hardcoded concepts | Campaign concepts with palettes, taglines, copy |
+| Clipper + Sentiment | `clipper` | Static "positive 85" | Real sentiment analysis with PR impact assessment |
+| Meeting Parser | `meeting` | 2 hardcoded actions | Extract all action items with assignees/deadlines |
+| Competitor Intel | `competitor` | 1 hardcoded opportunity | Multiple PR opportunities from competitor analysis |
+| Boilerplate Manager | `boilerplate` | Generic one-liner | Full company boilerplate paragraph |
+| Report Builder | `reports` | Template summary | Comprehensive monthly PR report |
 
-## Step 1: Database Migration
-Create a `decks` table:
-- `id` (uuid, PK, default gen_random_uuid())
-- `user_id` (uuid, NOT NULL)
-- `title` (text, NOT NULL)
-- `business_name` (text)
-- `topic` (text)
-- `tone` (text, default 'professional')
-- `slides` (jsonb, default '[]')
-- `theme` (text, default 'dark')
-- `created_at` / `updated_at` (timestamptz, default now())
+## Implementation
 
-RLS policy: users manage own decks (`auth.uid() = user_id`). Add the existing `update_updated_at_column` trigger.
+### Step 1: Create a single multi-purpose edge function
+**File:** `supabase/functions/ai-generate/index.ts`
 
-## Step 2: Edge Function — `generate-deck`
-- Receives `{ topic, businessName, tone, slideCount }` from the client
-- Calls Lovable AI Gateway with a system prompt instructing it to return a JSON array of slide objects
-- Uses tool calling (structured output) to guarantee valid JSON with the correct slide schema
-- Returns the parsed slides array to the client
-- Handles 429/402 errors gracefully
+One edge function that accepts a `type` parameter and routes to the appropriate prompt. This avoids creating 8 separate functions. Types: `press-release`, `pitch-email`, `creative-concepts`, `sentiment`, `meeting-actions`, `competitor-intel`, `boilerplate`, `report`.
 
-## Step 3: New Dependencies
-- `pptxgenjs` — PPTX export
-- `jspdf` — PDF export
-- `@dnd-kit/core` + `@dnd-kit/sortable` — drag-to-reorder slides
+Each type will have a tailored system prompt and use tool calling (structured output) to return well-typed JSON. Uses `LOVABLE_API_KEY` + Lovable AI Gateway with `google/gemini-3-flash-preview`.
 
-## Step 4: Data Hook — `useDecks`
-New hook in `src/hooks/useDecks.ts`:
-- `useDecks()` — fetch all user decks
-- `useCreateDeck()` — insert new deck
-- `useUpdateDeck()` — update deck (used for auto-save with 2s debounce)
-- `useDeleteDeck()` — delete a deck
+### Step 2: Update ABMPortal.tsx
+Replace every `setTimeout(() => { ... }, 1500)` block with a call to `supabase.functions.invoke('ai-generate', { body: { type, ...params } })`. Parse the response and set state. Add error handling with toast notifications for 429/402 errors.
 
-## Step 5: New Components
-All in `src/components/deckbuilder/`:
+### Step 3: Deploy and test
 
-1. **DeckDashboard.tsx** — Grid of deck cards (title, date, slide count) with New/Edit/Preview/Export/Delete actions
-2. **NewDeckForm.tsx** — Modal/panel with title, topic, business name, tone selector, slide count input, "Generate Deck" button
-3. **SlideEditor.tsx** — Left: vertical sortable list of editable slide cards. Right: live 16:9 preview. Drag-to-reorder via @dnd-kit. Add/delete slide buttons. Theme selector (Dark/Light/Navy/Charcoal).
-4. **SlidePreview.tsx** — Renders a single slide as a styled 16:9 card based on layout type (title, bullets, two-column, image-text, closing)
-5. **DeckExport.ts** — Utility functions for PPTX export (pptxgenjs) and PDF export (jsPDF or window.print)
+## Technical Details
 
-## Step 6: Routing & Navigation
-- Add `/deck-builder` route in `App.tsx` (protected)
-- Create `src/pages/DeckBuilder.tsx` as the page wrapper
-- The existing ABMPortal sidebar already has a "Deck Builder" nav item (`id: "deckbuilder"`). Change it to navigate to `/deck-builder` instead of switching tabs, OR keep it as a tab — whichever is simpler. Since the portal is tab-based (not route-based), the cleanest approach is to **keep it as a tab** and render the DeckDashboard/SlideEditor within ABMPortal when `tab === "deckbuilder"`.
+- **Model:** `google/gemini-3-flash-preview` (fast, cost-effective)
+- **Structured output:** Tool calling for each type ensures valid JSON responses
+- **Error handling:** 429 rate limit and 402 credit errors surfaced as toasts
+- **No new dependencies** — uses existing `supabase` client
+- **No new tables** — all generation is stateless (results displayed inline)
 
-## Step 7: Slide Themes
-Four themes applied to preview cards:
-- **Dark**: `#1a1a2e` bg, white text, green accents
-- **Light**: `#ffffff` bg, dark text, blue accents  
-- **Navy**: `#0a1628` bg, light text, gold accents
-- **Charcoal**: `#2d2d2d` bg, light gray text, teal accents
-
-## Step 8: Auto-Save
-Debounced (2s) call to `useUpdateDeck` whenever slides, title, or theme change in the editor.
-
-## Design Rules
-- All components use the existing inline-style pattern (C, F, Btn, Badge, etc.) from ABMPortal
-- No new UI library — matches existing dark theme exactly
-- Slide previews styled as polished 16:9 cards with proper typography
-
----
-
-## File Summary
+## Files Changed
 | File | Action |
 |------|--------|
-| `supabase/migrations/...` | Create `decks` table + RLS |
-| `supabase/functions/generate-deck/index.ts` | Edge function for AI slide generation |
-| `src/hooks/useDecks.ts` | CRUD hooks for decks |
-| `src/components/deckbuilder/DeckDashboard.tsx` | Deck listing + new deck form |
-| `src/components/deckbuilder/SlideEditor.tsx` | Editor with drag-reorder + live preview |
-| `src/components/deckbuilder/SlidePreview.tsx` | Single slide renderer |
-| `src/components/deckbuilder/DeckExport.ts` | PPTX + PDF export utilities |
-| `src/components/ABMPortal.tsx` | Wire `tab === "deckbuilder"` to render DeckDashboard/SlideEditor |
-| `package.json` | Add pptxgenjs, jspdf, @dnd-kit/core, @dnd-kit/sortable |
+| `supabase/functions/ai-generate/index.ts` | Create — multi-purpose AI generation edge function |
+| `src/components/ABMPortal.tsx` | Edit — replace 8 setTimeout blocks with real AI calls |
 
