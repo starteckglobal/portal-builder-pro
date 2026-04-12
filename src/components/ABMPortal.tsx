@@ -527,9 +527,6 @@ export default function ABM() {
               </ResponsiveContainer>
             </ChartCard>
           </div>
-              </ResponsiveContainer>
-            </div>
-          </div>
         </div>}
 
         {/* ═══ LEADS ═══ */}
