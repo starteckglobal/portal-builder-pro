@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import abmLogo from "@/assets/abm-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
@@ -190,12 +191,16 @@ export default function ABM() {
   const markAllRead = useMarkAllNotificationsRead();
 
   // Seed data on first login
+  const queryClient = useQueryClient();
   const [seeded, setSeeded] = useState(false);
   useEffect(() => {
     if (user && !seeded) {
-      seedDataForUser(user.id).then(() => setSeeded(true));
+      seedDataForUser(user.id).then(() => {
+        setSeeded(true);
+        queryClient.invalidateQueries();
+      });
     }
-  }, [user, seeded]);
+  }, [user, seeded, queryClient]);
 
   // ─── LOCAL UI STATE ─────────────────────────────────────
   const [tab, setTab] = useState("dashboard");
