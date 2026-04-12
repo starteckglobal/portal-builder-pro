@@ -304,6 +304,11 @@ export default function ABM() {
   const [reportClient, setReportClient] = useState("");
   const [reportLoading, setReportLoading] = useState(false);
   const [reportResult, setReportResult] = useState("");
+  const [showChangePw, setShowChangePw] = useState(false);
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNew, setPwNew] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
   const chatEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => { chatEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [chatCh, msgs]);
