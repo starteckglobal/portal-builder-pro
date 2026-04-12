@@ -240,6 +240,10 @@ export default function ABM() {
   const { data: dbNotifications = [] } = useNotifications();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
+  const { data: aiHistory = [] } = useAIOutputs();
+  const saveOutput = useSaveAIOutput();
+  const deleteOutput = useDeleteAIOutput();
+  const [historyTab, setHistoryTab] = useState<string | null>(null); // which module's history is open
 
   // Seed data on first login
   const queryClient = useQueryClient();
