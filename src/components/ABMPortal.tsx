@@ -548,11 +548,13 @@ export default function ABM() {
             {imgConcepts.map((c: any, i: number) => (
               <div key={i} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden" }}>
                 <div style={{ height: 50, display: "flex" }}>{(c.palette || []).map((cl: string, j: number) => <div key={j} style={{ flex: 1, background: cl }} />)}</div>
-                <div style={{ padding: 14 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: C.accent, marginBottom: 4 }}>{c.title}</div>
-                  <div style={{ fontSize: 10, color: C.textDim, lineHeight: 1.5 }}>{c.description}</div>
-                  <div style={{ fontSize: 9, color: C.textMuted, marginTop: 6 }}>Mood: {c.mood}</div>
-                </div>
+                 <div style={{ padding: 14 }}>
+                   <div style={{ fontSize: 12, fontWeight: 600, color: C.accent, marginBottom: 4 }}>{c.title}</div>
+                   <div style={{ fontSize: 10, color: C.textDim, lineHeight: 1.5 }}>{c.description}</div>
+                   {c.tagline && <div style={{ fontSize: 11, fontStyle: "italic", color: C.white, marginTop: 6 }}>"{c.tagline}"</div>}
+                   {c.copy && <div style={{ fontSize: 10, color: C.textMuted, marginTop: 4, lineHeight: 1.5 }}>{c.copy}</div>}
+                   <div style={{ fontSize: 9, color: C.textMuted, marginTop: 6 }}>Mood: {c.mood}</div>
+                 </div>
               </div>
             ))}
           </div>}
