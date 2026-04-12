@@ -304,6 +304,11 @@ export default function ABM() {
   const [reportClient, setReportClient] = useState("");
   const [reportLoading, setReportLoading] = useState(false);
   const [reportResult, setReportResult] = useState("");
+  const [showChangePw, setShowChangePw] = useState(false);
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNew, setPwNew] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
   const chatEnd = useRef<HTMLDivElement>(null);
 
   useEffect(() => { chatEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [chatCh, msgs]);
@@ -389,8 +394,15 @@ export default function ABM() {
             </button>
           ))}
         </nav>
-        <div style={{ padding: collapsed ? "8px 4px" : "8px 10px", borderTop: `1px solid ${C.border}` }}>
-          {!collapsed && <div style={{ fontSize: 9, color: C.textMuted, marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>}
+        <div style={{ padding: collapsed ? "8px 4px" : "8px 10px", borderTop: `1px solid ${C.border}`, display: "flex", flexDirection: "column", gap: 4 }}>
+          {!collapsed && <div style={{ fontSize: 9, color: C.textMuted, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>}
+          <button onClick={() => setShowChangePw(true)} style={{
+            width: "100%", padding: "6px 8px", borderRadius: 6, border: `1px solid ${C.border}`,
+            background: "transparent", color: C.textDim, fontSize: 10, cursor: "pointer",
+            fontFamily: F.body, display: "flex", alignItems: "center", gap: 6, justifyContent: collapsed ? "center" : "flex-start",
+          }}>
+            <I name="portal" size={12} />{!collapsed && "Change Password"}
+          </button>
           <button onClick={signOut} style={{
             width: "100%", padding: "6px 8px", borderRadius: 6, border: `1px solid ${C.border}`,
             background: "transparent", color: C.hot, fontSize: 10, cursor: "pointer",
@@ -967,6 +979,37 @@ export default function ABM() {
           </div>
         </div>}
       </main>
+
+      {/* CHANGE PASSWORD MODAL */}
+      {showChangePw && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.7)" }} onClick={() => setShowChangePw(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 28, width: 380, maxWidth: "90vw" }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.white, fontFamily: F.display, marginBottom: 18 }}>Change Password</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <Input type="password" value={pwCurrent} onChange={setPwCurrent} placeholder="Current password" />
+              <Input type="password" value={pwNew} onChange={setPwNew} placeholder="New password" />
+              <Input type="password" value={pwConfirm} onChange={setPwConfirm} placeholder="Confirm new password" />
+            </div>
+            {pwNew && pwConfirm && pwNew !== pwConfirm && (
+              <div style={{ fontSize: 11, color: C.hot, marginTop: 8 }}>Passwords do not match</div>
+            )}
+            <div style={{ display: "flex", gap: 8, marginTop: 18, justifyContent: "flex-end" }}>
+              <Btn small onClick={() => { setShowChangePw(false); setPwCurrent(""); setPwNew(""); setPwConfirm(""); }}>Cancel</Btn>
+              <Btn small primary disabled={pwLoading || !pwCurrent || !pwNew || pwNew !== pwConfirm || pwNew.length < 6} onClick={async () => {
+                setPwLoading(true);
+                try {
+                  // Verify current password by signing in
+                  const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user!.email!, password: pwCurrent });
+                  if (signInErr) { toast.error("Current password is incorrect"); setPwLoading(false); return; }
+                  const { error } = await supabase.auth.updateUser({ password: pwNew });
+                  if (error) { toast.error(error.message); } else { toast.success("Password updated!"); setShowChangePw(false); setPwCurrent(""); setPwNew(""); setPwConfirm(""); }
+                } catch (e: any) { toast.error(e.message || "Failed"); }
+                setPwLoading(false);
+              }}>{pwLoading ? "Updating…" : "Update Password"}</Btn>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
