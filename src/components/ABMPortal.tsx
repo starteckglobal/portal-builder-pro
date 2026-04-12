@@ -509,9 +509,9 @@ export default function ABM() {
             <Select value={prClient} onChange={setPrClient} options={dbLeads.map((l) => ({ value: l.name, label: l.name }))} placeholder="Select client..." />
             <div style={{ marginTop: 10 }}><TA value={prBrief} onChange={setPrBrief} placeholder="What's the news?" rows={3} /></div>
             <div style={{ marginTop: 10 }}>
-              <Btn primary onClick={() => { setPrLoading(true); setTimeout(() => { setPrResult(`FOR IMMEDIATE RELEASE\n\n${prClient} Announces Major Development\n\nNEW ORLEANS, LA — ${prBrief}\n\nThis is a generated press release template. Connect Lovable Cloud for AI-powered generation.`); setPrLoading(false); }, 1500); }} disabled={prLoading || !prClient || !prBrief}>
-                <I name="sparkle" size={12} /> {prLoading ? "Writing..." : "Generate"}
-              </Btn>
+               <Btn primary onClick={async () => { setPrLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'press-release', client: prClient, brief: prBrief } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setPrResult(`${data.headline}\n${data.subheadline ? '\n' + data.subheadline + '\n' : ''}\n${data.body}`); } } catch (e: any) { toast.error(e.message || 'Generation failed'); } finally { setPrLoading(false); } }} disabled={prLoading || !prClient || !prBrief}>
+                 <I name="sparkle" size={12} /> {prLoading ? "Writing..." : "Generate"}
+               </Btn>
             </div>
           </div>
           {prResult && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}><pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{prResult}</pre></div>}
@@ -525,9 +525,9 @@ export default function ABM() {
             {emailJ && (() => { const j = dbContacts.find((c) => c.name === emailJ); return j ? <div style={{ background: "#0c0c0c", borderRadius: 6, padding: 8, margin: "8px 0", display: "flex", gap: 12, fontSize: 10, color: C.textDim }}><span>{j.outlet}</span><span>{j.beat}</span><Badge text={j.relationship} color={j.relationship === "strong" ? C.accent : C.blue} /></div> : null; })()}
             <TA value={emailAngle} onChange={setEmailAngle} placeholder="Story angle..." rows={2} />
             <div style={{ marginTop: 10 }}>
-              <Btn primary onClick={() => { setEmailLoading(true); setTimeout(() => { setEmailResult(`Subject: ${emailAngle}\n\nHi ${emailJ},\n\nI hope this finds you well. I'm reaching out with an exclusive angle...\n\nThis is a template. Connect Lovable Cloud for AI generation.`); setEmailLoading(false); }, 1500); }} disabled={emailLoading || !emailJ || !emailAngle}>
-                <I name="sparkle" size={12} /> {emailLoading ? "..." : "Generate Pitch"}
-              </Btn>
+               <Btn primary onClick={async () => { setEmailLoading(true); try { const j = dbContacts.find((c) => c.name === emailJ); const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'pitch-email', journalist: emailJ, outlet: j?.outlet || '', beat: j?.beat || '', relationship: j?.relationship || '', angle: emailAngle } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setEmailResult(`Subject: ${data.subject}\n\n${data.body}`); } } catch (e: any) { toast.error(e.message || 'Generation failed'); } finally { setEmailLoading(false); } }} disabled={emailLoading || !emailJ || !emailAngle}>
+                 <I name="sparkle" size={12} /> {emailLoading ? "..." : "Generate Pitch"}
+               </Btn>
             </div>
           </div>
           {emailResult && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}><pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{emailResult}</pre></div>}
@@ -539,9 +539,9 @@ export default function ABM() {
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
             <TA value={imgPrompt} onChange={setImgPrompt} placeholder="Campaign concept, brand, audience..." rows={3} />
             <div style={{ marginTop: 10, textAlign: "right" }}>
-              <Btn primary onClick={() => { setImgLoading(true); setTimeout(() => { setImgConcepts([{ title: "Urban Craft", description: "Brewery culture meets city vibes", mood: "energetic", palette: ["#5cb85c", "#1a1a2e", "#e85d4a", "#f0a050"] }, { title: "Heritage Blend", description: "Tradition meets innovation", mood: "warm", palette: ["#2d5016", "#c9a227", "#8b4513", "#f5f5dc"] }]); setImgLoading(false); }, 1500); }} disabled={imgLoading || !imgPrompt}>
-                <I name="sparkle" size={12} /> {imgLoading ? "..." : "Generate"}
-              </Btn>
+               <Btn primary onClick={async () => { setImgLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'creative-concepts', prompt: imgPrompt } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setImgConcepts(data.concepts || []); } } catch (e: any) { toast.error(e.message || 'Generation failed'); } finally { setImgLoading(false); } }} disabled={imgLoading || !imgPrompt}>
+                 <I name="sparkle" size={12} /> {imgLoading ? "..." : "Generate"}
+               </Btn>
             </div>
           </div>
           {imgConcepts.length > 0 && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10 }}>
@@ -580,9 +580,9 @@ export default function ABM() {
           <p style={{ color: C.textDim, margin: "0 0 14px", fontSize: 11 }}>Paste article text/headline → AI analyzes sentiment, reach, and PR impact</p>
           <TA value={sentimentUrl} onChange={setSentimentUrl} placeholder="Paste article headline, text, or URL..." rows={2} />
           <div style={{ marginTop: 10 }}>
-            <Btn primary onClick={() => { setSentimentLoading(true); setTimeout(() => { setSentimentResult({ sentiment: "positive", score: 85, reach_estimate: "250K", pr_impact: "Strong positive coverage driving brand awareness." }); setSentimentLoading(false); }, 1500); }} disabled={sentimentLoading || !sentimentUrl}>
-              <I name="sparkle" size={12} /> {sentimentLoading ? "Analyzing..." : "Analyze Sentiment"}
-            </Btn>
+             <Btn primary onClick={async () => { setSentimentLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'sentiment', text: sentimentUrl } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setSentimentResult(data); } } catch (e: any) { toast.error(e.message || 'Analysis failed'); } finally { setSentimentLoading(false); } }} disabled={sentimentLoading || !sentimentUrl}>
+               <I name="sparkle" size={12} /> {sentimentLoading ? "Analyzing..." : "Analyze Sentiment"}
+             </Btn>
           </div>
           {sentimentResult && <div style={{ background: C.card, border: `1px solid ${sentimentResult.sentiment === "positive" ? C.accent : sentimentResult.sentiment === "negative" ? C.hot : C.blue}40`, borderRadius: 10, padding: 16, marginTop: 14 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
@@ -665,9 +665,9 @@ export default function ABM() {
           <p style={{ color: C.textDim, margin: "0 0 14px", fontSize: 11 }}>Paste meeting notes, AI extracts tasks with assignees and deadlines</p>
           <TA value={meetingNotes} onChange={setMeetingNotes} placeholder="Paste meeting notes here..." rows={5} />
           <div style={{ marginTop: 10 }}>
-            <Btn primary onClick={() => { setMeetingLoading(true); setTimeout(() => { setMeetingActions([{ task: "Follow up with Gulf South on crisis plan", assignee: "Alicia", deadline: "Apr 12", priority: "high" }, { task: "Draft social media batch #6", assignee: "Nina", deadline: "Apr 14", priority: "medium" }]); setMeetingLoading(false); }, 1500); }} disabled={meetingLoading || !meetingNotes}>
-              <I name="sparkle" size={12} /> {meetingLoading ? "Parsing..." : "Extract Action Items"}
-            </Btn>
+             <Btn primary onClick={async () => { setMeetingLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'meeting-actions', notes: meetingNotes } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setMeetingActions(data.actions || []); } } catch (e: any) { toast.error(e.message || 'Parsing failed'); } finally { setMeetingLoading(false); } }} disabled={meetingLoading || !meetingNotes}>
+               <I name="sparkle" size={12} /> {meetingLoading ? "Parsing..." : "Extract Action Items"}
+             </Btn>
           </div>
           {meetingActions && <div style={{ marginTop: 14 }}>
             <h3 style={{ fontSize: 12, fontWeight: 600, color: C.accent, marginBottom: 10 }}>Extracted Actions ({meetingActions.length})</h3>
@@ -688,9 +688,9 @@ export default function ABM() {
           <p style={{ color: C.textDim, margin: "0 0 14px", fontSize: 11 }}>Describe competitor activity → AI finds PR opportunities</p>
           <TA value={competitorQ} onChange={setCompetitorQ} placeholder="What's your competitor doing?..." rows={3} />
           <div style={{ marginTop: 10 }}>
-            <Btn primary onClick={() => { setCompetitorLoading(true); setTimeout(() => { setCompetitorResult([{ opportunity: "Counter-position on sustainability", outlet: "Times-Picayune", angle: "Local-first approach", urgency: "high" }]); setCompetitorLoading(false); }, 1500); }} disabled={competitorLoading || !competitorQ}>
-              <I name="sparkle" size={12} /> {competitorLoading ? "Analyzing..." : "Find Opportunities"}
-            </Btn>
+             <Btn primary onClick={async () => { setCompetitorLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'competitor-intel', query: competitorQ } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setCompetitorResult(data.opportunities || []); } } catch (e: any) { toast.error(e.message || 'Analysis failed'); } finally { setCompetitorLoading(false); } }} disabled={competitorLoading || !competitorQ}>
+               <I name="sparkle" size={12} /> {competitorLoading ? "Analyzing..." : "Find Opportunities"}
+             </Btn>
           </div>
           {competitorResult && <div style={{ marginTop: 14 }}>
             {competitorResult.map((c: any, i: number) => (
@@ -707,9 +707,9 @@ export default function ABM() {
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Boilerplate Manager</h1>
           <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
             <Input value={bpClient} onChange={setBpClient} placeholder="Client name to generate boilerplate..." style={{ flex: 1 }} />
-            <Btn primary onClick={() => { setBpLoading(true); setTimeout(() => { setBoilerplates((p) => [...p, { id: Date.now(), client: bpClient, text: `${bpClient} is a New Orleans-based company committed to excellence...`, generated: true }]); setBpLoading(false); setBpClient(""); }, 1500); }} disabled={bpLoading || !bpClient}>
-              <I name="sparkle" size={12} /> {bpLoading ? "..." : "Generate"}
-            </Btn>
+             <Btn primary onClick={async () => { setBpLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'boilerplate', client: bpClient } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setBoilerplates((p) => [...p, { id: Date.now(), client: bpClient, text: data.text, generated: true }]); setBpClient(""); } } catch (e: any) { toast.error(e.message || 'Generation failed'); } finally { setBpLoading(false); } }} disabled={bpLoading || !bpClient}>
+               <I name="sparkle" size={12} /> {bpLoading ? "..." : "Generate"}
+             </Btn>
           </div>
           {boilerplates.map((b) => (
             <div key={b.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14, marginBottom: 8 }}>
@@ -777,9 +777,9 @@ export default function ABM() {
               <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{dbCoverage.filter((c) => c.client === reportClient).reduce((a, c) => a + parseInt(c.reach), 0).toLocaleString()}</span><div style={{ fontSize: 9, color: C.textMuted }}>Reach</div></div>
             </div>}
             <div style={{ marginTop: 10 }}>
-              <Btn primary onClick={() => { setReportLoading(true); setTimeout(() => { setReportResult(`Monthly PR Report: ${reportClient}\n\nExecutive Summary: Strong month with ${dbCoverage.filter((c) => c.client === reportClient).length} placements.\n\nConnect Lovable Cloud for full AI-generated reports.`); setReportLoading(false); }, 1500); }} disabled={reportLoading || !reportClient}>
-                <I name="sparkle" size={12} /> {reportLoading ? "..." : "Generate Report"}
-              </Btn>
+               <Btn primary onClick={async () => { setReportLoading(true); try { const clientCoverage = dbCoverage.filter((c) => c.client === reportClient); const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'report', client: reportClient, placements: clientCoverage.length, reach: clientCoverage.reduce((a, c) => a + parseInt(c.reach || '0'), 0).toLocaleString(), titles: clientCoverage.map((c) => c.title).join(', ') } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setReportResult(data.full_report || data.executive_summary || ''); } } catch (e: any) { toast.error(e.message || 'Generation failed'); } finally { setReportLoading(false); } }} disabled={reportLoading || !reportClient}>
+                 <I name="sparkle" size={12} /> {reportLoading ? "..." : "Generate Report"}
+               </Btn>
             </div>
           </div>
           {reportResult && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}><pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{reportResult}</pre></div>}
