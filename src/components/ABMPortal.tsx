@@ -5,6 +5,7 @@ import abmLogo from "@/assets/abm-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLeads, useContacts, useCoverage, useKanbanCards, useUpdateKanbanCard, useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/usePortalData";
 import { seedDataForUser } from "@/lib/seedData";
+import DeckDashboard from "@/components/deckbuilder/DeckDashboard";
 
 // ─── THEME ──────────────────────────────────────────────────
 const C = {
@@ -497,26 +498,7 @@ export default function ABM() {
         </div>}
 
         {/* ═══ DECK BUILDER ═══ */}
-        {tab === "deckbuilder" && <div style={{ padding: 24, maxWidth: 1000 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Deck Builder</h1>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 16 }}>
-            {DECK_TPLS.map((t) => (
-              <div key={t.id} onClick={() => setDeckTpl(t.id)} style={{ background: deckTpl === t.id ? t.color + "20" : C.card, border: `1px solid ${deckTpl === t.id ? t.color : C.border}`, borderRadius: 10, padding: 14, cursor: "pointer", transition: "all .15s" }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: t.color }}>{t.name}</div>
-                <div style={{ fontSize: 10, color: C.textDim }}>{t.slides} slides</div>
-              </div>
-            ))}
-          </div>
-          <Input value={deckClient} onChange={setDeckClient} placeholder="Client name..." />
-          <div style={{ marginTop: 10 }}>
-            <Btn primary onClick={() => { setDeckLoading(true); setTimeout(() => { setDeckResult("Deck outline generated for " + deckClient); setDeckLoading(false); }, 1500); }} disabled={deckLoading || !deckTpl || !deckClient}>
-              <I name="sparkle" size={12} /> {deckLoading ? "Building..." : "Generate Deck Outline"}
-            </Btn>
-          </div>
-          {deckResult && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginTop: 14 }}>
-            <pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{deckResult}</pre>
-          </div>}
-        </div>}
+        {tab === "deckbuilder" && <DeckDashboard />}
 
         {/* ═══ PRESS RELEASE ═══ */}
         {tab === "pressrelease" && <div style={{ padding: 24, maxWidth: 900 }}>

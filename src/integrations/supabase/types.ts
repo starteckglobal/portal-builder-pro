@@ -95,6 +95,45 @@ export type Database = {
         }
         Relationships: []
       }
+      decks: {
+        Row: {
+          business_name: string | null
+          created_at: string
+          id: string
+          slides: Json | null
+          theme: string | null
+          title: string
+          tone: string | null
+          topic: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_name?: string | null
+          created_at?: string
+          id?: string
+          slides?: Json | null
+          theme?: string | null
+          title: string
+          tone?: string | null
+          topic?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_name?: string | null
+          created_at?: string
+          id?: string
+          slides?: Json | null
+          theme?: string | null
+          title?: string
+          tone?: string | null
+          topic?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       kanban_cards: {
         Row: {
           client: string | null
