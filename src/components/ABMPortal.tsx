@@ -557,7 +557,7 @@ export default function ABM() {
             <Select value={prClient} onChange={setPrClient} options={dbLeads.map((l) => ({ value: l.name, label: l.name }))} placeholder="Select client..." />
             <div style={{ marginTop: 10 }}><TA value={prBrief} onChange={setPrBrief} placeholder="What's the news?" rows={3} /></div>
             <div style={{ marginTop: 10 }}>
-               <Btn primary onClick={async () => { setPrLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'press-release', client: prClient, brief: prBrief } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setPrResult(`${data.headline}\n${data.subheadline ? '\n' + data.subheadline + '\n' : ''}\n${data.body}`); } } catch (e: any) { toast.error(e.message || 'Generation failed'); } finally { setPrLoading(false); } }} disabled={prLoading || !prClient || !prBrief}>
+               <Btn primary onClick={async () => { setPrLoading(true); setPrResult(""); let acc = ""; await streamAI({ type: 'press-release', client: prClient, brief: prBrief }, (d) => { acc += d; setPrResult(acc); }, () => setPrLoading(false), (e) => { toast.error(e); setPrLoading(false); }); }} disabled={prLoading || !prClient || !prBrief}>
                  <I name="sparkle" size={12} /> {prLoading ? "Writing..." : "Generate"}
                </Btn>
             </div>
