@@ -1,29 +1,32 @@
 
 
-# Sign-In Screen Enhancements
+# Dashboard Analytics Visual Polish
 
-## Changes to `src/pages/AuthPage.tsx`
+## Summary
+Fix the pie chart white ring, add hover animations to all chart elements and stat cards, and clean up the overall chart styling.
 
-### 1. Bigger ABM Logo
-Change the logo from 48×48 to 80×80 pixels.
+## Changes (all in `src/components/ABMPortal.tsx`)
 
-### 2. iOS Glass Effect on Card
-Replace the solid `#161616` card background with a frosted glass style:
-- `background: rgba(255,255,255,0.06)`
-- `backdropFilter: "blur(24px) saturate(1.4)"`
-- `WebkitBackdropFilter` for Safari
-- Subtle semi-transparent border: `rgba(255,255,255,0.12)`
-- Soft box shadow for depth
+### 1. Fix Pie Chart White Ring
+The `<Pie>` component defaults to `stroke="#fff"`. Fix by adding `stroke="none"` (or `stroke={C.card}` for subtle separation) to the `<Pie>` element on line 465.
 
-### 3. "Forgot Password?" Link
-Add a "Forgot password?" button below the password field (visible only in sign-in mode). On click:
-- Set a `forgotMode` state
-- Show an email-only form that calls `supabase.auth.resetPasswordForEmail(email)`
-- Display a success message confirming the reset email was sent
-- Provide a "Back to sign in" link
+### 2. Add Hover Animations to Stat Cards
+Update the `Stat` component (line 149) to include `transition: "transform 0.2s ease, box-shadow 0.2s ease"` and add `onMouseEnter`/`onMouseLeave` handlers that apply `transform: "translateY(-4px)"` and a subtle glow box-shadow on hover.
 
-### Files Changed
+### 3. Add Hover Animations to Chart Cards
+Wrap each chart container div (Coverage Trend, Sentiment, Client Health, Pitch Performance) with the same hover-lift effect: `transition: "transform 0.2s ease, border-color 0.2s ease"`, lifting `-3px` on hover with accent-tinted border.
+
+### 4. Bar Chart Hover Effect
+Add `onMouseEnter` cursor styling and use Recharts' `activeBar` prop on `<Bar>` components to show a brighter fill on hover. Add `cursor="pointer"` to bar elements.
+
+### 5. Pie Chart Hover Effect
+Add `activeShape` rendering to the `<Pie>` component that scales the hovered sector slightly outward (larger `outerRadius`) with a subtle glow effect.
+
+### 6. Clean Up Tooltip Styling
+Ensure all `<Tooltip>` components have consistent dark-themed styling with `background: C.surface`, rounded corners, no white borders, and proper text colors.
+
+## Files Changed
 | File | Change |
 |------|--------|
-| `src/pages/AuthPage.tsx` | Add forgot password flow, enlarge logo, apply glass effect to card |
+| `src/components/ABMPortal.tsx` | Update Stat component, chart containers, Pie/Bar props for hover effects and white ring fix |
 
