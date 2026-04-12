@@ -1,25 +1,29 @@
 
 
-# Password Change Feature
+# Sign-In Screen Enhancements
 
-## Summary
-Two changes: (1) reset the password for `starteckglobal@gmail.com` to `starteckglobal` via a database admin SQL call, and (2) add a "Change Password" option in the sidebar menu above the Sign Out button.
+## Changes to `src/pages/AuthPage.tsx`
 
-## Step 1: Reset Password
-Use the Supabase admin API (via a one-time edge function call or direct SQL) to update the password for `starteckglobal@gmail.com` to `starteckglobal`. This will be done using `supabase.auth.admin.updateUserById()` in a quick edge function invocation or via the service role key.
+### 1. Bigger ABM Logo
+Change the logo from 48×48 to 80×80 pixels.
 
-## Step 2: Add Change Password UI
-In the sidebar footer area of `ABMPortal.tsx` (around line 392-400), add a "Change Password" button above "Sign Out" that opens a small modal/dialog with:
-- Current password field
-- New password field  
-- Confirm new password field
-- Submit button that calls `supabase.auth.updateUser({ password: newPassword })`
+### 2. iOS Glass Effect on Card
+Replace the solid `#161616` card background with a frosted glass style:
+- `background: rgba(255,255,255,0.06)`
+- `backdropFilter: "blur(24px) saturate(1.4)"`
+- `WebkitBackdropFilter` for Safari
+- Subtle semi-transparent border: `rgba(255,255,255,0.12)`
+- Soft box shadow for depth
 
-The dialog will use the existing dark theme inline styles (C, F constants) to match the portal design. No new dependencies needed — `supabase.auth.updateUser()` handles password changes for logged-in users.
+### 3. "Forgot Password?" Link
+Add a "Forgot password?" button below the password field (visible only in sign-in mode). On click:
+- Set a `forgotMode` state
+- Show an email-only form that calls `supabase.auth.resetPasswordForEmail(email)`
+- Display a success message confirming the reset email was sent
+- Provide a "Back to sign in" link
 
-## Files Changed
-| File | Action |
+### Files Changed
+| File | Change |
 |------|--------|
-| `src/components/ABMPortal.tsx` | Add Change Password button + modal dialog in sidebar footer |
-| Edge function or admin call | One-time password reset for the specified account |
+| `src/pages/AuthPage.tsx` | Add forgot password flow, enlarge logo, apply glass effect to card |
 
