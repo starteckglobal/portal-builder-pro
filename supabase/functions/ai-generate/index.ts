@@ -5,9 +5,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const PROMPTS: Record<string, { system: string; userTemplate: (p: any) => string; tool: any }> = {
+// Types that stream plain text (long-form writing)
+const STREAM_TYPES = new Set(["press-release", "pitch-email", "boilerplate", "report"]);
+
+const PROMPTS: Record<string, { system: string; userTemplate: (p: any) => string; streamSystem?: string; tool: any }> = {
   "press-release": {
     system: "You are a senior PR writer. Write polished, publication-ready press releases in AP style. Include dateline, quotes, boilerplate.",
+    streamSystem: "You are a senior PR writer. Write polished, publication-ready press releases in AP style. Include a bold headline, dateline, quotes from spokespeople, and a company boilerplate at the end. Output only the press release text, no JSON or markdown code fences.",
     userTemplate: (p) => `Write a press release for "${p.client}" about: ${p.brief}`,
     tool: {
       name: "write_press_release",
@@ -25,6 +29,7 @@ const PROMPTS: Record<string, { system: string; userTemplate: (p: any) => string
   },
   "pitch-email": {
     system: "You are a media relations expert. Write compelling, personalized pitch emails that get opened. Keep them concise (under 200 words), with a strong subject line and clear ask.",
+    streamSystem: "You are a media relations expert. Write compelling, personalized pitch emails. Start with 'Subject: ...' on the first line, then a blank line, then the email body. Keep under 200 words. Output only the email text, no JSON or code fences.",
     userTemplate: (p) => `Write a pitch email to journalist "${p.journalist}" at "${p.outlet}" (covers ${p.beat}, relationship: ${p.relationship}). Story angle: ${p.angle}`,
     tool: {
       name: "write_pitch_email",
@@ -144,7 +149,8 @@ const PROMPTS: Record<string, { system: string; userTemplate: (p: any) => string
   },
   "boilerplate": {
     system: "You are a corporate communications writer. Write professional company boilerplate paragraphs suitable for press releases.",
-    userTemplate: (p) => `Write a company boilerplate paragraph for "${p.client}". Make it sound professional, mention New Orleans if relevant, and keep it to 3-4 sentences.`,
+    streamSystem: "You are a corporate communications writer. Write a professional company boilerplate paragraph suitable for press releases. Keep it to 3-4 sentences. Mention New Orleans if relevant. Output only the paragraph text, no JSON or code fences.",
+    userTemplate: (p) => `Write a company boilerplate paragraph for "${p.client}".`,
     tool: {
       name: "write_boilerplate",
       description: "Return a company boilerplate",
@@ -159,6 +165,7 @@ const PROMPTS: Record<string, { system: string; userTemplate: (p: any) => string
   },
   "report": {
     system: "You are a PR reporting specialist. Write comprehensive monthly PR reports with executive summaries, metrics analysis, and recommendations.",
+    streamSystem: "You are a PR reporting specialist. Write a comprehensive monthly PR report with an executive summary, key highlights, metrics analysis, and strategic recommendations. Format with clear headings. Output only the report text, no JSON or code fences.",
     userTemplate: (p) => `Write a monthly PR report for client "${p.client}" with ${p.placements} placements and ${p.reach} total reach this month. Coverage titles: ${p.titles}`,
     tool: {
       name: "write_report",
@@ -178,12 +185,26 @@ const PROMPTS: Record<string, { system: string; userTemplate: (p: any) => string
   },
 };
 
+function handleError(status: number) {
+  if (status === 429) {
+    return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+      status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  if (status === 402) {
+    return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds in Settings > Workspace > Usage." }), {
+      status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const body = await req.json();
-    const { type, ...params } = body;
+    const { type, stream: wantStream, ...params } = body;
 
     const config = PROMPTS[type];
     if (!config) {
@@ -195,6 +216,43 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    const shouldStream = wantStream && STREAM_TYPES.has(type);
+
+    if (shouldStream) {
+      // Streaming path — plain text, no tool calling
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: config.streamSystem || config.system },
+            { role: "user", content: config.userTemplate(params) },
+          ],
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errResp = handleError(response.status);
+        if (errResp) return errResp;
+        const t = await response.text();
+        console.error("AI gateway error:", response.status, t);
+        return new Response(JSON.stringify({ error: "AI generation failed" }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Pass through the SSE stream
+      return new Response(response.body, {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      });
+    }
+
+    // Non-streaming path — tool calling for structured output
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -216,16 +274,8 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds in Settings > Workspace > Usage." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+      const errResp = handleError(response.status);
+      if (errResp) return errResp;
       const t = await response.text();
       console.error("AI gateway error:", response.status, t);
       return new Response(JSON.stringify({ error: "AI generation failed" }), {
