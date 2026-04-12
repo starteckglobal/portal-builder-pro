@@ -498,36 +498,35 @@ export default function ABM() {
             <Stat label="Mentions" value="340" sub="March 2026" icon="monitor" color={C.blue} glow={C.blueGlow} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
-              <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: 1, color: C.accent }}>Coverage Trend</h3>
+            <ChartCard title="Coverage Trend">
               <ResponsiveContainer width="100%" height={160}>
-                <BarChart data={CHART_DATA}><CartesianGrid strokeDasharray="3 3" stroke={C.border} /><XAxis dataKey="month" tick={{ fontSize: 10, fill: C.textDim }} /><YAxis tick={{ fontSize: 10, fill: C.textDim }} /><Tooltip contentStyle={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 11 }} /><Bar dataKey="coverage" fill={C.accent} radius={[4, 4, 0, 0]} /></BarChart>
+                <BarChart data={CHART_DATA}><CartesianGrid strokeDasharray="3 3" stroke={C.border} /><XAxis dataKey="month" tick={{ fontSize: 10, fill: C.textDim }} /><YAxis tick={{ fontSize: 10, fill: C.textDim }} /><Tooltip contentStyle={tooltipStyle} cursor={{ fill: C.accentGlow }} /><Bar dataKey="coverage" fill={C.accent} radius={[4, 4, 0, 0]} activeBar={{ fill: "#7dd87d", stroke: C.accent, strokeWidth: 1 }} /></BarChart>
               </ResponsiveContainer>
-            </div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
-              <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: 1, color: C.accent }}>Sentiment Breakdown</h3>
+            </ChartCard>
+            <ChartCard title="Sentiment Breakdown">
               <ResponsiveContainer width="100%" height={160}>
-                <PieChart><Pie data={sentimentData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" label={({ name, value }: any) => `${name} ${value}%`} labelLine={false}>{sentimentData.map((e, i) => <Cell key={i} fill={e.color} />)}</Pie><Tooltip /></PieChart>
+                <PieChart><Pie data={sentimentData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" stroke="none" activeShape={renderActiveShape} label={({ name, value }: any) => `${name} ${value}%`} labelLine={false}>{sentimentData.map((e, i) => <Cell key={i} fill={e.color} />)}</Pie><Tooltip contentStyle={tooltipStyle} /></PieChart>
               </ResponsiveContainer>
-            </div>
+            </ChartCard>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
-              <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: 1, color: C.accent }}>Client Health Scores</h3>
+            <ChartCard title="Client Health Scores">
               {healthScores.map((h, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                   <span style={{ fontSize: 11, color: C.textDim, minWidth: 120 }}>{h.name}</span>
                   <div style={{ flex: 1, height: 6, borderRadius: 3, background: C.border, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${h.score}%`, borderRadius: 3, background: h.score > 80 ? C.accent : h.score > 60 ? C.blue : C.hot }} />
+                    <div style={{ height: "100%", width: `${h.score}%`, borderRadius: 3, background: h.score > 80 ? C.accent : h.score > 60 ? C.blue : C.hot, transition: "width 0.5s ease" }} />
                   </div>
                   <span style={{ fontSize: 11, fontWeight: 600, color: h.score > 80 ? C.accent : h.score > 60 ? C.blue : C.hot, minWidth: 28 }}>{h.score}</span>
                 </div>
               ))}
-            </div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
-              <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: 1, color: C.accent }}>Pitch Performance by Team</h3>
+            </ChartCard>
+            <ChartCard title="Pitch Performance by Team">
               <ResponsiveContainer width="100%" height={140}>
-                <BarChart data={PITCH_PERF} layout="vertical"><CartesianGrid strokeDasharray="3 3" stroke={C.border} /><XAxis type="number" tick={{ fontSize: 10, fill: C.textDim }} /><YAxis dataKey="name" type="category" tick={{ fontSize: 10, fill: C.textDim }} width={50} /><Tooltip contentStyle={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 11 }} /><Bar dataKey="placed" fill={C.accent} radius={[0, 4, 4, 0]} /><Bar dataKey="sent" fill={C.border} radius={[0, 4, 4, 0]} /></BarChart>
+                <BarChart data={PITCH_PERF} layout="vertical"><CartesianGrid strokeDasharray="3 3" stroke={C.border} /><XAxis type="number" tick={{ fontSize: 10, fill: C.textDim }} /><YAxis dataKey="name" type="category" tick={{ fontSize: 10, fill: C.textDim }} width={50} /><Tooltip contentStyle={tooltipStyle} cursor={{ fill: C.accentGlow }} /><Bar dataKey="placed" fill={C.accent} radius={[0, 4, 4, 0]} activeBar={{ fill: "#7dd87d" }} /><Bar dataKey="sent" fill={C.border} radius={[0, 4, 4, 0]} activeBar={{ fill: "#444" }} /></BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          </div>
               </ResponsiveContainer>
             </div>
           </div>
