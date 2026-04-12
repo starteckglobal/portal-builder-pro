@@ -24,7 +24,7 @@ export async function exportPPTX(slides: Slide[], title: string, theme: string) 
     } else {
       sl.addText(s.title, { x: 0.5, y: 0.3, w: 9, h: 0.8, fontSize: 24, bold: true, color: tc.text });
       sl.addShape(pptx.ShapeType.rect, { x: 0.5, y: 1.05, w: 2, h: 0.04, fill: { color: tc.accent } });
-      const bullets = s.bullets.map((b) => ({ text: b, options: { fontSize: 14, color: tc.text, bullet: { color: tc.accent } } }));
+      const bullets = s.bullets.map((b) => ({ text: b, options: { fontSize: 14, color: tc.text, bullet: { type: "bullet" as const, color: tc.accent } } }));
       if (s.layout === "two-column") {
         const mid = Math.ceil(bullets.length / 2);
         sl.addText(bullets.slice(0, mid), { x: 0.5, y: 1.3, w: 4.2, h: 3.5 });
