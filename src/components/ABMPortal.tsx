@@ -389,8 +389,15 @@ export default function ABM() {
             </button>
           ))}
         </nav>
-        <div style={{ padding: collapsed ? "8px 4px" : "8px 10px", borderTop: `1px solid ${C.border}` }}>
-          {!collapsed && <div style={{ fontSize: 9, color: C.textMuted, marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>}
+        <div style={{ padding: collapsed ? "8px 4px" : "8px 10px", borderTop: `1px solid ${C.border}`, display: "flex", flexDirection: "column", gap: 4 }}>
+          {!collapsed && <div style={{ fontSize: 9, color: C.textMuted, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>}
+          <button onClick={() => setShowChangePw(true)} style={{
+            width: "100%", padding: "6px 8px", borderRadius: 6, border: `1px solid ${C.border}`,
+            background: "transparent", color: C.textDim, fontSize: 10, cursor: "pointer",
+            fontFamily: F.body, display: "flex", alignItems: "center", gap: 6, justifyContent: collapsed ? "center" : "flex-start",
+          }}>
+            <I name="portal" size={12} />{!collapsed && "Change Password"}
+          </button>
           <button onClick={signOut} style={{
             width: "100%", padding: "6px 8px", borderRadius: 6, border: `1px solid ${C.border}`,
             background: "transparent", color: C.hot, fontSize: 10, cursor: "pointer",
