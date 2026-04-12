@@ -6,6 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLeads, useContacts, useCoverage, useKanbanCards, useUpdateKanbanCard, useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/usePortalData";
 import { seedDataForUser } from "@/lib/seedData";
 import DeckDashboard from "@/components/deckbuilder/DeckDashboard";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // ─── THEME ──────────────────────────────────────────────────
 const C = {
