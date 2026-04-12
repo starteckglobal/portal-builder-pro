@@ -9,6 +9,54 @@ import DeckDashboard from "@/components/deckbuilder/DeckDashboard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+// ─── STREAMING HELPER ───────────────────────────────────────
+const streamAI = async (
+  body: Record<string, any>,
+  onDelta: (text: string) => void,
+  onDone: () => void,
+  onError: (msg: string) => void,
+) => {
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-generate`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ ...body, stream: true }),
+  });
+  if (!resp.ok) {
+    let msg = "Generation failed";
+    try { const j = await resp.json(); msg = j.error || msg; } catch {}
+    onError(msg);
+    return;
+  }
+  if (!resp.body) { onError("No response body"); return; }
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl: number;
+    while ((nl = buf.indexOf("\n")) !== -1) {
+      let line = buf.slice(0, nl);
+      buf = buf.slice(nl + 1);
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      if (!line.startsWith("data: ")) continue;
+      const json = line.slice(6).trim();
+      if (json === "[DONE]") { onDone(); return; }
+      try {
+        const parsed = JSON.parse(json);
+        const c = parsed.choices?.[0]?.delta?.content;
+        if (c) onDelta(c);
+      } catch {}
+    }
+  }
+  onDone();
+};
+
 // ─── THEME ──────────────────────────────────────────────────
 const C = {
   bg: "#080808", surface: "#0f0f0f", card: "#161616", cardH: "#1e1e1e",
@@ -509,12 +557,12 @@ export default function ABM() {
             <Select value={prClient} onChange={setPrClient} options={dbLeads.map((l) => ({ value: l.name, label: l.name }))} placeholder="Select client..." />
             <div style={{ marginTop: 10 }}><TA value={prBrief} onChange={setPrBrief} placeholder="What's the news?" rows={3} /></div>
             <div style={{ marginTop: 10 }}>
-               <Btn primary onClick={async () => { setPrLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'press-release', client: prClient, brief: prBrief } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setPrResult(`${data.headline}\n${data.subheadline ? '\n' + data.subheadline + '\n' : ''}\n${data.body}`); } } catch (e: any) { toast.error(e.message || 'Generation failed'); } finally { setPrLoading(false); } }} disabled={prLoading || !prClient || !prBrief}>
+               <Btn primary onClick={async () => { setPrLoading(true); setPrResult(""); let acc = ""; await streamAI({ type: 'press-release', client: prClient, brief: prBrief }, (d) => { acc += d; setPrResult(acc); }, () => setPrLoading(false), (e) => { toast.error(e); setPrLoading(false); }); }} disabled={prLoading || !prClient || !prBrief}>
                  <I name="sparkle" size={12} /> {prLoading ? "Writing..." : "Generate"}
                </Btn>
             </div>
           </div>
-          {prResult && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}><pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{prResult}</pre></div>}
+          {(prResult || prLoading) && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}><pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{prResult}{prLoading && <span style={{ display: "inline-block", width: 6, height: 14, background: C.accent, animation: "blink 1s infinite", marginLeft: 2, verticalAlign: "text-bottom" }} />}</pre></div>}
         </div>}
 
         {/* ═══ PITCH EMAIL ═══ */}
@@ -525,12 +573,12 @@ export default function ABM() {
             {emailJ && (() => { const j = dbContacts.find((c) => c.name === emailJ); return j ? <div style={{ background: "#0c0c0c", borderRadius: 6, padding: 8, margin: "8px 0", display: "flex", gap: 12, fontSize: 10, color: C.textDim }}><span>{j.outlet}</span><span>{j.beat}</span><Badge text={j.relationship} color={j.relationship === "strong" ? C.accent : C.blue} /></div> : null; })()}
             <TA value={emailAngle} onChange={setEmailAngle} placeholder="Story angle..." rows={2} />
             <div style={{ marginTop: 10 }}>
-               <Btn primary onClick={async () => { setEmailLoading(true); try { const j = dbContacts.find((c) => c.name === emailJ); const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'pitch-email', journalist: emailJ, outlet: j?.outlet || '', beat: j?.beat || '', relationship: j?.relationship || '', angle: emailAngle } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setEmailResult(`Subject: ${data.subject}\n\n${data.body}`); } } catch (e: any) { toast.error(e.message || 'Generation failed'); } finally { setEmailLoading(false); } }} disabled={emailLoading || !emailJ || !emailAngle}>
+               <Btn primary onClick={async () => { setEmailLoading(true); setEmailResult(""); const j = dbContacts.find((c) => c.name === emailJ); let acc = ""; await streamAI({ type: 'pitch-email', journalist: emailJ, outlet: j?.outlet || '', beat: j?.beat || '', relationship: j?.relationship || '', angle: emailAngle }, (d) => { acc += d; setEmailResult(acc); }, () => setEmailLoading(false), (e) => { toast.error(e); setEmailLoading(false); }); }} disabled={emailLoading || !emailJ || !emailAngle}>
                  <I name="sparkle" size={12} /> {emailLoading ? "..." : "Generate Pitch"}
                </Btn>
             </div>
           </div>
-          {emailResult && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}><pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{emailResult}</pre></div>}
+          {(emailResult || emailLoading) && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}><pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{emailResult}{emailLoading && <span style={{ display: "inline-block", width: 6, height: 14, background: C.accent, animation: "blink 1s infinite", marginLeft: 2, verticalAlign: "text-bottom" }} />}</pre></div>}
         </div>}
 
         {/* ═══ CREATIVE AI ═══ */}
@@ -709,7 +757,7 @@ export default function ABM() {
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Boilerplate Manager</h1>
           <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
             <Input value={bpClient} onChange={setBpClient} placeholder="Client name to generate boilerplate..." style={{ flex: 1 }} />
-             <Btn primary onClick={async () => { setBpLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'boilerplate', client: bpClient } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setBoilerplates((p) => [...p, { id: Date.now(), client: bpClient, text: data.text, generated: true }]); setBpClient(""); } } catch (e: any) { toast.error(e.message || 'Generation failed'); } finally { setBpLoading(false); } }} disabled={bpLoading || !bpClient}>
+             <Btn primary onClick={async () => { setBpLoading(true); const clientName = bpClient; let acc = ""; setBoilerplates((p) => [...p, { id: Date.now(), client: clientName, text: "", generated: true }]); setBpClient(""); await streamAI({ type: 'boilerplate', client: clientName }, (d) => { acc += d; setBoilerplates((p) => p.map((b) => b.client === clientName && b.text.length <= acc.length ? { ...b, text: acc } : b)); }, () => setBpLoading(false), (e) => { toast.error(e); setBpLoading(false); }); }} disabled={bpLoading || !bpClient}>
                <I name="sparkle" size={12} /> {bpLoading ? "..." : "Generate"}
              </Btn>
           </div>
@@ -779,12 +827,12 @@ export default function ABM() {
               <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{dbCoverage.filter((c) => c.client === reportClient).reduce((a, c) => a + parseInt(c.reach), 0).toLocaleString()}</span><div style={{ fontSize: 9, color: C.textMuted }}>Reach</div></div>
             </div>}
             <div style={{ marginTop: 10 }}>
-               <Btn primary onClick={async () => { setReportLoading(true); try { const clientCoverage = dbCoverage.filter((c) => c.client === reportClient); const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'report', client: reportClient, placements: clientCoverage.length, reach: clientCoverage.reduce((a, c) => a + parseInt(c.reach || '0'), 0).toLocaleString(), titles: clientCoverage.map((c) => c.title).join(', ') } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setReportResult(data.full_report || data.executive_summary || ''); } } catch (e: any) { toast.error(e.message || 'Generation failed'); } finally { setReportLoading(false); } }} disabled={reportLoading || !reportClient}>
+               <Btn primary onClick={async () => { setReportLoading(true); setReportResult(""); const clientCoverage = dbCoverage.filter((c) => c.client === reportClient); let acc = ""; await streamAI({ type: 'report', client: reportClient, placements: clientCoverage.length, reach: clientCoverage.reduce((a, c) => a + parseInt(c.reach || '0'), 0).toLocaleString(), titles: clientCoverage.map((c) => c.title).join(', ') }, (d) => { acc += d; setReportResult(acc); }, () => setReportLoading(false), (e) => { toast.error(e); setReportLoading(false); }); }} disabled={reportLoading || !reportClient}>
                  <I name="sparkle" size={12} /> {reportLoading ? "..." : "Generate Report"}
                </Btn>
             </div>
           </div>
-          {reportResult && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}><pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{reportResult}</pre></div>}
+          {(reportResult || reportLoading) && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}><pre style={{ fontSize: 10, color: C.textDim, lineHeight: 1.7, whiteSpace: "pre-wrap", fontFamily: F.body, margin: 0 }}>{reportResult}{reportLoading && <span style={{ display: "inline-block", width: 6, height: 14, background: C.accent, animation: "blink 1s infinite", marginLeft: 2, verticalAlign: "text-bottom" }} />}</pre></div>}
         </div>}
 
         {/* ═══ MEDIA MONITOR ═══ */}
