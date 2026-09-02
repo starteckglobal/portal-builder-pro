@@ -17,11 +17,13 @@ const cardSx: React.CSSProperties = {
 
 export type FieldType = "text" | "number" | "date" | "email" | "url" | "textarea" | "select";
 
+export type FieldOption = string | { value: string; label: string };
+
 export type FieldDef = {
   name: string;
   label: string;
   type?: FieldType;
-  options?: string[];
+  options?: FieldOption[];
   required?: boolean;
   placeholder?: string;
   defaultValue?: string;
@@ -39,9 +41,11 @@ type Props = {
   onSubmit: (values: Record<string, any>) => void | Promise<void>;
 };
 
+const optionValue = (option: FieldOption) => typeof option === "string" ? option : option.value;
+
 const initial = (fields: FieldDef[]) =>
   fields.reduce<Record<string, string>>((acc, f) => {
-    acc[f.name] = f.defaultValue ?? (f.type === "select" ? f.options?.[0] ?? "" : "");
+    acc[f.name] = f.defaultValue ?? (f.type === "select" ? (f.options?.[0] ? optionValue(f.options[0]) : "") : "");
     return acc;
   }, {});
 
@@ -114,7 +118,10 @@ export default function AddRecordModal({ open, title, fields, submitLabel = "Sav
               ) : f.type === "select" ? (
                 <select value={values[f.name] ?? ""} onChange={(e) => set(f.name, e.target.value)} style={inputSx}>
                   {!f.required && <option value="">Select…</option>}
-                  {(f.options || []).map((o) => <option key={o} value={o}>{o}</option>)}
+                  {(f.options || []).map((o) => {
+                    const value = optionValue(o);
+                    return <option key={value} value={value}>{typeof o === "string" ? o : o.label}</option>;
+                  })}
                 </select>
               ) : (
                 <input

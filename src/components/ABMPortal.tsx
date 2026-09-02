@@ -392,7 +392,7 @@ export default function ABM() {
   useEffect(() => { chatEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [chatCh, msgs]);
 
   // ─── DERIVED DATA ───────────────────────────────────────
-  const clientOptions = clients.map((client: any) => client.name).filter(Boolean);
+  const clientOptions = clients.map((client: any) => ({ value: client.id, label: client.name })).filter((client: { value?: string; label?: string }) => client.value && client.label);
   const kanban = useMemo(() => {
     const cols: Record<string, any[]> = { draft: [], sent: [], followup: [], placed: [], declined: [] };
     dbKanbanCards.forEach((card) => {
