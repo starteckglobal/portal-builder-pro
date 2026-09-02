@@ -281,6 +281,42 @@ export type Database = {
         }
         Relationships: []
       }
+      live_meetings: {
+        Row: {
+          ended_at: string | null
+          host_id: string
+          host_name: string | null
+          id: string
+          last_seen_at: string
+          room_name: string
+          started_at: string
+          status: string
+          title: string
+        }
+        Insert: {
+          ended_at?: string | null
+          host_id: string
+          host_name?: string | null
+          id?: string
+          last_seen_at?: string
+          room_name: string
+          started_at?: string
+          status?: string
+          title?: string
+        }
+        Update: {
+          ended_at?: string | null
+          host_id?: string
+          host_name?: string | null
+          id?: string
+          last_seen_at?: string
+          room_name?: string
+          started_at?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       mcp_connections: {
         Row: {
           auth_type: string
@@ -323,6 +359,44 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_participants: {
+        Row: {
+          display_name: string | null
+          id: string
+          joined_at: string
+          last_seen_at: string
+          left_at: string | null
+          meeting_id: string
+          user_id: string
+        }
+        Insert: {
+          display_name?: string | null
+          id?: string
+          joined_at?: string
+          last_seen_at?: string
+          left_at?: string | null
+          meeting_id: string
+          user_id: string
+        }
+        Update: {
+          display_name?: string | null
+          id?: string
+          joined_at?: string
+          last_seen_at?: string
+          left_at?: string | null
+          meeting_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_participants_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "live_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -364,7 +438,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      expire_stale_meetings: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
