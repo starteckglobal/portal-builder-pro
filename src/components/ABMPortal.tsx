@@ -418,6 +418,7 @@ export default function ABM() {
     { id: "competitor", label: "Competitor Intel", icon: "search" }, { id: "boilerplate", label: "Boilerplates", icon: "assets" },
     { id: "onboard", label: "Client Onboard", icon: "wizard" }, { id: "reports", label: "Report Builder", icon: "report" },
     { id: "monitor", label: "Media Monitor", icon: "monitor" }, { id: "portal", label: "Client Portal", icon: "portal" },
+    { id: "settings", label: "Settings", icon: "settings" },
   ];
 
   return (
