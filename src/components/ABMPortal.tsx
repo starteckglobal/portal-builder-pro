@@ -118,17 +118,34 @@ const I = ({ name, size = 18 }: { name: string; size?: number }) =>
 
 // ─── PRIMITIVES ─────────────────────────────────────────────
 const Btn = ({ children, primary, small, color, onClick, disabled, style: sx }: any) => (
-  <button onClick={onClick} disabled={disabled} style={{
-    padding: small ? "6px 12px" : "10px 18px", borderRadius: 8,
-    border: primary ? "none" : `1px solid ${C.border}`,
-    background: primary ? (color || C.accent) : "transparent",
-    color: primary ? "#000" : (color || C.textDim),
-    fontSize: small ? 11 : 12, fontWeight: primary ? 700 : 500,
-    cursor: disabled ? "not-allowed" : "pointer", fontFamily: F.body,
-    display: "inline-flex", alignItems: "center", gap: 6,
-    opacity: disabled ? .5 : 1, ...sx,
-  }}>{children}</button>
+  <SpecularButton
+    onClick={onClick}
+    disabled={disabled}
+    size={small ? "sm" : "md"}
+    radius={small ? 8 : 12}
+    tintOpacity={primary ? 0.45 : 0.18}
+    autoAnimate={false}
+    style={{
+      height: "auto",
+      padding: small ? "6px 12px" : "10px 18px",
+      fontSize: small ? 11 : 12,
+      fontWeight: primary ? 700 : 500,
+      fontFamily: F.body,
+      color: primary ? "#eafff0" : (color || C.text),
+      ...(primary
+        ? {
+            background: `linear-gradient(180deg, ${C.accent}, hsl(120 38% 30%))`,
+            border: `1px solid ${C.accent}`,
+          }
+        : {}),
+      cursor: disabled ? "not-allowed" : "pointer",
+      ...sx,
+    }}
+  >
+    {children}
+  </SpecularButton>
 );
+
 
 const Input = ({ value, onChange, placeholder, style: sx, ...r }: any) => (
   <input value={value} onChange={(e: any) => onChange(e.target.value)} placeholder={placeholder} style={{
