@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import LiveMeeting from "@/components/meeting/LiveMeeting";
 import { AppSidebar } from "@/components/app-sidebar";
 import FunnelChart, { type FunnelStage } from "@/components/charts/funnel-chart";
 import { HighlightPanel } from "@/components/ui/highlight-card";
@@ -556,6 +557,8 @@ export default function ABM() {
             ))}
           </div>
         </div>}
+
+        {tab === "livemeeting" && <LiveMeeting />}
 
         {/* ═══ CHAT ═══ */}
         {tab === "chat" && <div style={{ display: "flex", height: "100%" }}>

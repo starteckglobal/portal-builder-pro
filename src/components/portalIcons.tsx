@@ -34,6 +34,7 @@ export const ICONS: Record<string, string> = {
   gamma: '<polygon points="12,2 22,20 2,20"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>',
+  video: '<path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
   logout: '<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/>',
 };
 

@@ -33,6 +33,7 @@ export const NAV = [
   { id: "leads", label: "Leads CRM", icon: "leads" },
   { id: "kanban", label: "Pitch Kanban", icon: "kanban" },
   { id: "chat", label: "Team Chat", icon: "chat" },
+  { id: "livemeeting", label: "Live Meeting", icon: "video" },
   { id: "deckbuilder", label: "Deck Builder", icon: "deck" },
   { id: "pressrelease", label: "Press Release", icon: "press" },
   { id: "pitchemail", label: "Pitch Composer", icon: "email" },
@@ -64,7 +65,7 @@ const GROUPS: { id: string; label: string; icon: string; items: typeof NAV }[] =
     id: "workspace",
     label: "Workspace",
     icon: "dashboard",
-    items: [byId("dashboard"), byId("leads"), byId("kanban"), byId("chat")],
+    items: [byId("dashboard"), byId("leads"), byId("kanban"), byId("chat"), byId("livemeeting")],
   },
   {
     id: "create",
