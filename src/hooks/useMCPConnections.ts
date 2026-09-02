@@ -55,7 +55,7 @@ export function useMCPConnections() {
       setConnections((data ?? []) as MCPConnection[]);
     }
     setLoading(false);
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     void load();
