@@ -1,7 +1,7 @@
 -- Meeting backend: every meeting is a stored record, with participants and history.
 create table if not exists public.live_meetings (
   id uuid primary key default gen_random_uuid(),
-  room_name text not null unique,
+  room_name text not null,
   title text not null default 'Live meeting',
   host_id uuid not null references auth.users(id) on delete cascade,
   host_name text,
