@@ -778,10 +778,17 @@ export default function ABM() {
           </div>}
         </div>}
 
-        {/* ═══ MEDIA LIST ═══ */}
-        {tab === "medialist" && <div style={{ padding: 24, maxWidth: 1200 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Media Lists</h1>
-          <div style={{ ...cardSx, borderRadius: 10 }}>
+         {/* ═══ MEDIA LIST ═══ */}
+         {tab === "medialist" && <div style={{ padding: 24, maxWidth: 1200 }}>
+           <SectionHeader title="Media Lists" onAdd={() => openAdd("Add media contact", [
+             { name: "name", label: "Name", required: true, maxLength: 120 },
+             { name: "outlet", label: "Outlet", maxLength: 120 },
+             { name: "beat", label: "Beat", maxLength: 120 },
+             { name: "email", label: "Email", type: "email", maxLength: 255 },
+             { name: "relationship", label: "Relationship", type: "select", options: ["strong", "good", "new"], required: true },
+             { name: "notes", label: "Notes", type: "textarea", maxLength: 1000 },
+           ], (v) => addContact.mutateAsync(v as any))} />
+           <div style={{ ...cardSx, borderRadius: 10 }}>
             {dbContacts.map((c, i) => (
               <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 80px 70px 60px", alignItems: "center", padding: "9px 14px", borderBottom: i < dbContacts.length - 1 ? `1px solid ${C.border}` : "none", fontSize: 11 }}>
                 <div style={{ fontWeight: 500, color: C.white }}>{c.name}</div>
@@ -794,10 +801,17 @@ export default function ABM() {
           </div>
         </div>}
 
-        {/* ═══ CLIPPER + SENTIMENT ═══ */}
-        {tab === "clipper" && <div style={{ padding: 24, maxWidth: 900 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 4px", color: C.white }}>Coverage Clipper + AI Sentiment</h1>
-          <p style={{ color: C.textDim, margin: "0 0 14px", fontSize: 11 }}>Paste article text/headline → AI analyzes sentiment, reach, and PR impact</p>
+         {/* ═══ CLIPPER + SENTIMENT ═══ */}
+         {tab === "clipper" && <div style={{ padding: 24, maxWidth: 900 }}>
+           <SectionHeader title="Coverage Clipper + AI Sentiment" subtitle="Paste article text/headline → AI analyzes sentiment, reach, and PR impact" onAdd={() => openAdd("Add coverage", [
+             { name: "outlet", label: "Outlet", required: true, maxLength: 120 },
+             { name: "title", label: "Headline", required: true, maxLength: 240 },
+             { name: "url", label: "Article URL", type: "url", maxLength: 500 },
+             { name: "date", label: "Date", type: "date" },
+             { name: "sentiment", label: "Sentiment", type: "select", options: ["positive", "neutral", "negative"], required: true },
+             { name: "reach", label: "Reach", maxLength: 40 },
+             { name: "client", label: "Client", maxLength: 120 },
+           ], (v) => addCoverage.mutateAsync(v as any))} />
           <TA value={sentimentUrl} onChange={setSentimentUrl} placeholder="Paste article headline, text, or URL..." rows={2} />
           <div style={{ marginTop: 10 }}>
              <Btn primary onClick={async () => { setSentimentLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'sentiment', text: sentimentUrl } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setSentimentResult(data); } } catch (e: any) { toast.error(e.message || 'Analysis failed'); } finally { setSentimentLoading(false); } }} disabled={sentimentLoading || !sentimentUrl}>
@@ -814,20 +828,29 @@ export default function ABM() {
           </div>}
         </div>}
 
-        {/* ═══ SOCIAL CALENDAR ═══ */}
-        {tab === "calendar" && <div style={{ padding: 24, maxWidth: 1200 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Social Calendar</h1>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 5 }}>
-            {Array.from({ length: 7 }, (_, i) => new Date(2026, 3, 9 + i)).map((d, di) => {
-              const ds = d.toISOString().split("T")[0]; const today = ds === "2026-04-10";
-              return <div key={di} style={{ ...cardSx, border: `1px solid ${today ? C.accent + "50" : C.border}`, borderRadius: 8, padding: 8, minHeight: 160 }}>
+         {/* ═══ SOCIAL CALENDAR ═══ */}
+         {tab === "calendar" && <div style={{ padding: 24, maxWidth: 1200 }}>
+           <SectionHeader title="Social Calendar" onAdd={() => openAdd("Add social post", [
+             { name: "post_date", label: "Post date", type: "date", required: true },
+             { name: "post_time", label: "Post time", maxLength: 30 },
+             { name: "channel", label: "Channel", type: "select", options: ["IG", "LI", "X", "TikTok", "Facebook"], required: true },
+             { name: "caption", label: "Caption", type: "textarea", required: true, maxLength: 2000 },
+             { name: "status", label: "Status", type: "select", options: ["pending", "approved", "published"], required: true },
+             { name: "client", label: "Client", maxLength: 120 },
+           ], (v) => addCalendarPost.mutateAsync(v))} />
+           <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 5 }}>
+             {Array.from({ length: 7 }, (_, i) => new Date(2026, 3, 9 + i)).map((d, di) => {
+               const ds = d.toISOString().split("T")[0]; const today = ds === "2026-04-10";
+               const addedPosts = calendarPosts.filter((p: any) => p.post_date === ds);
+               return <div key={di} style={{ ...cardSx, border: `1px solid ${today ? C.accent + "50" : C.border}`, borderRadius: 8, padding: 8, minHeight: 160 }}>
                 <div style={{ fontSize: 8, color: today ? C.accent : C.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 5 }}>{d.toLocaleDateString("en-US", { weekday: "short" })} {d.getDate()}</div>
-                {[{ t: "10 AM", p: "IG", c: "Launch prep", s: "approved" }, { t: "2 PM", p: "LI", c: "Industry insight", s: "pending" }].filter((_, j) => j <= di % 3).map((p, j) => (
-                  <div key={j} style={{ background: "#0c0c0c", borderRadius: 4, padding: 5, marginBottom: 3, borderLeft: `2px solid ${p.s === "approved" ? C.accent : C.blue}`, fontSize: 9 }}>
-                    <div style={{ color: C.textMuted }}>{p.t} · {p.p}</div>
-                    <div style={{ color: C.textDim }}>{p.c}</div>
-                  </div>
-                ))}
+                 {[{ t: "10 AM", p: "IG", c: "Launch prep", s: "approved" }, { t: "2 PM", p: "LI", c: "Industry insight", s: "pending" }].filter((_, j) => j <= di % 3).map((p, j) => (
+                   <div key={`seed-${j}`} style={{ background: "#0c0c0c", borderRadius: 4, padding: 5, marginBottom: 3, borderLeft: `2px solid ${p.s === "approved" ? C.accent : C.blue}`, fontSize: 9 }}>
+                     <div style={{ color: C.textMuted }}>{p.t} · {p.p}</div>
+                     <div style={{ color: C.textDim }}>{p.c}</div>
+                   </div>
+                 ))}
+                 {addedPosts.map((p: any) => <div key={p.id} style={{ background: C.accentGlow, borderRadius: 4, padding: 5, marginBottom: 3, borderLeft: `2px solid ${C.accent}`, fontSize: 9 }}><div style={{ color: C.accent }}>{p.post_time || "Scheduled"} · {p.channel}</div><div style={{ color: C.textDim }}>{p.caption}</div></div>)}
               </div>;
             })}
           </div>
