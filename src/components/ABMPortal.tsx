@@ -673,12 +673,15 @@ export default function ABM() {
         {/* ═══ DECK BUILDER ═══ */}
         {tab === "deckbuilder" && <PresentonApp />}
 
-        {/* ═══ PRESS RELEASE ═══ */}
-        {tab === "pressrelease" && <div style={{ padding: 24, maxWidth: 900 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Press Release Writer</h1>
-            <Btn small onClick={() => setHistoryTab(historyTab === "press-release" ? null : "press-release")}><I name="notes" size={12} /> History ({aiHistory.filter(h => h.type === "press-release").length})</Btn>
-          </div>
+         {/* ═══ PRESS RELEASE ═══ */}
+         {tab === "pressrelease" && <div style={{ padding: 24, maxWidth: 900 }}>
+           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+             <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Press Release Writer</h1>
+             <div style={{ display: "flex", gap: 6 }}>
+               <Btn small onClick={() => setHistoryTab(historyTab === "press-release" ? null : "press-release")}><I name="notes" size={12} /> History ({aiHistory.filter(h => h.type === "press-release").length})</Btn>
+               <Btn small primary onClick={() => { setPrClient(""); setPrBrief(""); setPrResult(""); setHistoryTab(null); }}>+ New Brief</Btn>
+             </div>
+           </div>
           {historyTab === "press-release" && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Press Releases</div>
             {aiHistory.filter(h => h.type === "press-release").length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>}
@@ -713,12 +716,15 @@ export default function ABM() {
           </div>}
         </div>}
 
-        {/* ═══ PITCH EMAIL ═══ */}
-        {tab === "pitchemail" && <div style={{ padding: 24, maxWidth: 900 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Pitch Email Composer</h1>
-            <Btn small onClick={() => setHistoryTab(historyTab === "pitch-email" ? null : "pitch-email")}><I name="notes" size={12} /> History ({aiHistory.filter(h => h.type === "pitch-email").length})</Btn>
-          </div>
+         {/* ═══ PITCH EMAIL ═══ */}
+         {tab === "pitchemail" && <div style={{ padding: 24, maxWidth: 900 }}>
+           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+             <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Pitch Email Composer</h1>
+             <div style={{ display: "flex", gap: 6 }}>
+               <Btn small onClick={() => setHistoryTab(historyTab === "pitch-email" ? null : "pitch-email")}><I name="notes" size={12} /> History ({aiHistory.filter(h => h.type === "pitch-email").length})</Btn>
+               <Btn small primary onClick={() => { setEmailJ(""); setEmailAngle(""); setEmailResult(""); setHistoryTab(null); }}>+ New Pitch</Btn>
+             </div>
+           </div>
           {historyTab === "pitch-email" && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Pitches</div>
             {aiHistory.filter(h => h.type === "pitch-email").length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>}
@@ -751,10 +757,10 @@ export default function ABM() {
           </div>}
         </div>}
 
-        {/* ═══ CREATIVE AI ═══ */}
-        {tab === "imagegen" && <div style={{ padding: 24, maxWidth: 1000 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Creative AI Studio</h1>
-          <div style={{ ...cardSx, borderRadius: 10, padding: 16, marginBottom: 14 }}>
+         {/* ═══ CREATIVE AI ═══ */}
+         {tab === "imagegen" && <div style={{ padding: 24, maxWidth: 1000 }}>
+           <SectionHeader title="Creative AI Studio" onAdd={() => { setImgPrompt(""); setImgConcepts([]); }} />
+           <div style={{ ...cardSx, borderRadius: 10, padding: 16, marginBottom: 14 }}>
             <TA value={imgPrompt} onChange={setImgPrompt} placeholder="Campaign concept, brand, audience..." rows={3} />
             <div style={{ marginTop: 10, textAlign: "right" }}>
                <Btn primary onClick={async () => { setImgLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'creative-concepts', prompt: imgPrompt } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setImgConcepts(data.concepts || []); } } catch (e: any) { toast.error(e.message || 'Generation failed'); } finally { setImgLoading(false); } }} disabled={imgLoading || !imgPrompt}>
