@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useEffect, useState } from "react";
 import { SpecularButton } from "@/components/ui/specular-button";
 
@@ -117,7 +118,7 @@ export default function AddRecordModal({ open, title, fields, submitLabel = "Sav
                 </select>
               ) : (
                 <input
-                  type={f.type === "number" ? "number" : f.type === "date" ? "date" : "text"}
+                  type={f.type === "number" ? "number" : f.type === "date" ? "date" : f.type === "email" ? "email" : f.type === "url" ? "url" : "text"}
                   value={values[f.name] ?? ""}
                   onChange={(e) => set(f.name, e.target.value)}
                   placeholder={f.placeholder}
