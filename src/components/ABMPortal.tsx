@@ -5,7 +5,7 @@ import abmLogo from "@/assets/abm-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLeads, useContacts, useCoverage, useKanbanCards, useUpdateKanbanCard, useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, useAIOutputs, useSaveAIOutput, useDeleteAIOutput } from "@/hooks/usePortalData";
 import { seedDataForUser } from "@/lib/seedData";
-import DeckDashboard from "@/components/deckbuilder/DeckDashboard";
+import PresentonApp from "@/components/deckbuilder/presenton/PresentonApp";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -615,7 +615,7 @@ export default function ABM() {
         </div>}
 
         {/* ═══ DECK BUILDER ═══ */}
-        {tab === "deckbuilder" && <DeckDashboard />}
+        {tab === "deckbuilder" && <PresentonApp />}
 
         {/* ═══ PRESS RELEASE ═══ */}
         {tab === "pressrelease" && <div style={{ padding: 24, maxWidth: 900 }}>
