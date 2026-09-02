@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLeads, useContacts, useCoverage, useKanbanCards, useUpdateKanbanCard, useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, useAIOutputs, useSaveAIOutput, useDeleteAIOutput } from "@/hooks/usePortalData";
 import { seedDataForUser } from "@/lib/seedData";
 import PresentonApp from "@/components/deckbuilder/presenton/PresentonApp";
+import MCPConnectorsPanel from "@/components/settings/MCPConnectorsPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
