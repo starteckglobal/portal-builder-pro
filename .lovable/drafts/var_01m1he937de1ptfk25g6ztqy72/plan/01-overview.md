@@ -2,7 +2,7 @@
 
 Replace the current Deck Builder (dashboard + simple slide editor) with a native React rebuild of Presenton's product: its light UI, its three-step flow (prompt → editable outline → generated slides), its template/theme picker, its slide editor, and its PPTX/PDF export.
 
-Important constraint: Presenton is a Next.js + FastAPI + Postgres app with its own Docker stack and Python export service. It cannot be copied into this project file-for-file. What is buildable here is a like-for-like recreation of its screens and behavior in React/TypeScript, with the AI generation running through the existing backend function and decks stored in the existing database.
+Important constraint: Presenton is a Next.js + FastAPI + Postgres app with its own Docker stack and Python export service. What is buildable here is a like-for-like recreation of its screens and behavior in React/TypeScript, with the AI generation running through the existing backend function and decks stored in the existing database.
 
 ## Presenton flow being recreated
 
