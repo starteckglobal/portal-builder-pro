@@ -533,14 +533,22 @@ export default function ABM() {
 
         {/* ═══ LEADS ═══ */}
         {tab === "leads" && <div style={{ padding: 24, maxWidth: 1200 }}>
+        {tab === "leads" && <div style={{ padding: 24, maxWidth: 1200, filter: crmMono ? "grayscale(1)" : "none", transition: "filter .3s ease" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Client Leads</h1>
-            <div style={{ display: "flex", gap: 4 }}>
+            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
               {["all", "hot", "warm", "cold"].map((f) => (
                 <button key={f} onClick={() => setLeadFilter(f)} style={{ padding: "5px 10px", borderRadius: 6, border: `1px solid ${leadFilter === f ? C.accent : C.border}`, background: leadFilter === f ? C.accentGlow : "transparent", color: leadFilter === f ? C.accent : C.textDim, fontSize: 10, cursor: "pointer", textTransform: "capitalize" }}>{f === "hot" ? "🔥 " : ""}{f}</button>
               ))}
+              <button onClick={() => setCrmMono(!crmMono)} title="Toggle black & white view" style={{ marginLeft: 8, display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 6, border: `1px solid ${crmMono ? C.white : C.border}`, background: "transparent", color: crmMono ? C.white : C.textDim, fontSize: 10, cursor: "pointer" }}>
+                <span style={{ width: 22, height: 12, borderRadius: 8, background: crmMono ? C.white : C.border, position: "relative", display: "inline-block", transition: "background .2s" }}>
+                  <span style={{ position: "absolute", top: 2, left: crmMono ? 12 : 2, width: 8, height: 8, borderRadius: "50%", background: crmMono ? "#000" : "#888", transition: "left .2s" }} />
+                </span>
+                B&amp;W
+              </button>
             </div>
           </div>
+
           {fLeads.map((l) => (
             <div key={l.id} onClick={() => setSelectedLead(selectedLead?.id === l.id ? null : l)} style={{ background: C.card, border: `1px solid ${l.status === "hot" ? C.hot + "40" : C.border}`, borderRadius: 10, padding: "12px 16px", cursor: "pointer", marginBottom: 5 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
