@@ -77,3 +77,113 @@
   50% { box-shadow: 0 0 0 1px hsl(var(--primary) / .6), 0 0 32px hsl(var(--primary) / .38); }
 }
 .live-glow { animation: live-glow 2.2s ease-in-out infinite; border-radius: 14px; }
+
+/* ---------- Specular buttons (green tinted) ---------- */
+.specular-btn {
+  --spec-x: 50%;
+  --spec-y: 50%;
+  --spec-on: 0;
+  --spec-tint: hsl(120 38% 46%);
+  --spec-tint-o: .18;
+  --spec-line: hsl(120 38% 60%);
+  --spec-base: hsl(150 12% 14%);
+  --spec-shine: 100%;
+  --spec-fade: 40%;
+  --spec-thickness: 1px;
+  --spec-speed: 2.8s;
+  position: relative;
+  isolation: isolate;
+  border: var(--spec-thickness) solid hsl(120 38% 55% / .28);
+  background:
+    radial-gradient(120% 160% at 50% -40%, hsl(120 38% 60% / .16), transparent 60%),
+    linear-gradient(180deg, hsl(120 20% 22% / .55), var(--spec-base));
+  box-shadow:
+    inset 0 1px 0 hsl(120 40% 80% / .16),
+    inset 0 -8px 18px hsl(0 0% 0% / .35),
+    0 6px 18px hsl(0 0% 0% / .35);
+  backdrop-filter: blur(10px);
+}
+/* mouse-following specular hotspot */
+.specular-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  opacity: var(--spec-on);
+  transition: opacity .35s ease;
+  background: radial-gradient(
+    var(--spec-shine) var(--spec-shine) at var(--spec-x) var(--spec-y),
+    hsl(120 60% 72% / calc(.55 * var(--spec-tint-o) + .22)),
+    hsl(120 50% 55% / .12) var(--spec-fade),
+    transparent 75%
+  );
+}
+/* animated rim light */
+.specular-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--spec-thickness);
+  pointer-events: none;
+  z-index: 1;
+  background: conic-gradient(
+    from var(--spec-angle, 0deg),
+    transparent 0deg,
+    var(--spec-line) 28deg,
+    hsl(120 60% 85% / .9) 40deg,
+    transparent 80deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+.specular-btn:hover::after,
+.specular-btn--auto::after { opacity: .85; animation: spec-rim var(--spec-speed) linear infinite; }
+.specular-btn:hover {
+  border-color: hsl(120 38% 60% / .5);
+  box-shadow:
+    inset 0 1px 0 hsl(120 40% 85% / .22),
+    0 10px 26px hsl(120 38% 20% / .45),
+    0 0 0 1px hsl(120 38% 50% / .25);
+}
+
+@property --spec-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes spec-rim {
+  to { --spec-angle: 360deg; }
+}
+
+/* Apply the specular treatment to every solid/outline app button */
+.btn-specular {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.btn-specular::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s ease;
+  background: radial-gradient(
+    90px 90px at var(--spec-x, 50%) var(--spec-y, 50%),
+    hsl(120 60% 78% / .35),
+    hsl(120 50% 55% / .1) 45%,
+    transparent 70%
+  );
+}
+.btn-specular:hover::before { opacity: 1; }
+.btn-specular:hover {
+  box-shadow: 0 0 0 1px hsl(120 38% 55% / .35), 0 8px 22px hsl(120 38% 18% / .4);
+}
