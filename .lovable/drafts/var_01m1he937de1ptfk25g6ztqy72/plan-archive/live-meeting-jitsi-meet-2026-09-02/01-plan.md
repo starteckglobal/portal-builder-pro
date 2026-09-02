@@ -14,7 +14,7 @@ So: Jitsi's official package, Jitsi's UI, pointed at a meeting server. Default s
 
 - Sidebar item **Live Meeting** in the Workspace group, with a video icon.
 - Landing screen in the portal dark theme:
-  - **Start instant meeting** — generates a random room name and joins immediately.
+  - **Start instant meeting** — generates a random room name and joins immediately. you can also rename and add name of room before start
   - **Join by name** — type or paste a room name (or a full `meet.jit.si/...` link) and join.
   - Your portal display name and email are prefilled into Jitsi, so participants see real names.
 - Once joined, the full Jitsi Meet interface fills the content area with all its native controls.
