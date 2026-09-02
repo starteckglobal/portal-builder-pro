@@ -310,15 +310,14 @@ export default function ABM() {
   const { data: roiScenarios = [] } = useROIScenarios();
   const { data: storedReports = [] } = useReports();
   const { data: chatMessages = [] } = useChatMessages();
-  const addRecord = (table: string) => useAddRecord(table);
-  const addClient = addRecord("clients");
-  const addCalendarPost = addRecord("calendar_posts");
-  const addMeetingNote = addRecord("meeting_notes");
-  const addCompetitorNote = addRecord("competitor_notes");
-  const addBoilerplate = addRecord("boilerplates");
-  const addROIScenario = addRecord("roi_scenarios");
-  const addReport = addRecord("reports");
-  const addChatMessage = addRecord("chat_messages");
+  const addClient = useAddRecord("clients");
+  const addCalendarPost = useAddRecord("calendar_posts");
+  const addMeetingNote = useAddRecord("meeting_notes");
+  const addCompetitorNote = useAddRecord("competitor_notes");
+  const addBoilerplate = useAddRecord("boilerplates");
+  const addROIScenario = useAddRecord("roi_scenarios");
+  const addReport = useAddRecord("reports");
+  const addChatMessage = useAddRecord("chat_messages");
   const [historyTab, setHistoryTab] = useState<string | null>(null); // which module's history is open
 
   // Seed data on first login
@@ -568,9 +567,17 @@ export default function ABM() {
         {/* ═══ LEADS ═══ */}
         
         {tab === "leads" && <div style={{ padding: 24, maxWidth: 1200, filter: crmMono ? "grayscale(1)" : "none", transition: "filter .3s ease" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Client Leads</h1>
-            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+             <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Client Leads</h1>
+             <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+               <Btn small primary onClick={() => openAdd("Add lead", [
+                 { name: "name", label: "Company", required: true, maxLength: 120 },
+                 { name: "contact", label: "Contact", maxLength: 120 },
+                 { name: "email", label: "Email", type: "email", maxLength: 255 },
+                 { name: "status", label: "Status", type: "select", options: ["hot", "warm", "cold"], required: true },
+                 { name: "value", label: "Value", maxLength: 40 },
+                 { name: "notes", label: "Notes", type: "textarea", maxLength: 1000 },
+               ], (v) => addLead.mutateAsync({ ...v, score: v.status === "hot" ? 90 : v.status === "warm" ? 60 : 20 }))}>+ Add Lead</Btn>
               {["all", "hot", "warm", "cold"].map((f) => (
                 <button key={f} onClick={() => setLeadFilter(f)} style={{ padding: "5px 10px", borderRadius: 6, border: `1px solid ${leadFilter === f ? C.accent : C.border}`, background: leadFilter === f ? C.accentGlow : "transparent", color: leadFilter === f ? C.accent : C.textDim, fontSize: 10, cursor: "pointer", textTransform: "capitalize" }}>{f === "hot" ? "🔥 " : ""}{f}</button>
               ))}
@@ -598,8 +605,15 @@ export default function ABM() {
         </div>}
 
         {/* ═══ PITCH KANBAN ═══ */}
-        {tab === "kanban" && <div style={{ padding: 24 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Pitch Kanban Board</h1>
+         {tab === "kanban" && <div style={{ padding: 24 }}>
+           <SectionHeader title="Pitch Kanban Board" onAdd={() => openAdd("Add pitch card", [
+             { name: "title", label: "Pitch title", required: true, maxLength: 160 },
+             { name: "client", label: "Client", maxLength: 120 },
+             { name: "contact", label: "Contact", maxLength: 120 },
+             { name: "column_name", label: "Stage", type: "select", options: ["draft", "sent", "followup", "placed", "declined"], required: true },
+             { name: "owner", label: "Owner", maxLength: 120 },
+             { name: "due_date", label: "Due date", type: "date" },
+           ], (v) => addKanbanCard.mutateAsync(v))} />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 10, minHeight: 400 }}>
             {([["draft", "Draft", C.textDim], ["sent", "Sent", C.blue], ["followup", "Follow Up", C.orange], ["placed", "Placed ✓", C.accent], ["declined", "Declined", C.hot]] as const).map(([col, label, color]) => (
               <div key={col} onDragOver={(e) => e.preventDefault()} onDrop={() => dropOnCol(col)} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: 10, borderTop: `3px solid ${color}` }}>
@@ -620,8 +634,13 @@ export default function ABM() {
         {tab === "livemeeting" && <LiveMeeting />}
 
         {/* ═══ CHAT ═══ */}
-        {tab === "chat" && <div style={{ display: "flex", height: "100%" }}>
-          <div style={{ width: 180, borderRight: `1px solid ${C.border}`, background: C.surface, padding: "12px 6px", flexShrink: 0 }}>
+         {tab === "chat" && <div style={{ display: "flex", height: "100%", flexDirection: "column" }}>
+           <SectionHeader title="Team Chat" onAdd={() => openAdd("Add team message", [
+             { name: "channel", label: "Channel", type: "select", options: CHANNELS.map((c) => c.id), required: true },
+             { name: "body", label: "Message", type: "textarea", required: true, maxLength: 2000 },
+           ], async (v) => { await addChatMessage.mutateAsync({ ...v, author: user?.email || "Team member" }); })} />
+           <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+           <div style={{ width: 180, borderRight: `1px solid ${C.border}`, background: C.surface, padding: "12px 6px", flexShrink: 0 }}>
             {CHANNELS.map((ch) => (
               <button key={ch.id} onClick={() => setChatCh(ch.id)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 8px", borderRadius: 6, border: "none", background: chatCh === ch.id ? C.accentGlow : "transparent", color: chatCh === ch.id ? C.accent : C.textDim, fontSize: 10, cursor: "pointer", marginBottom: 1 }}>
                 <span># {ch.name}</span>{ch.unread > 0 && <span style={{ fontSize: 8, padding: "1px 4px", borderRadius: 6, background: C.accent, color: "#000", fontWeight: 700 }}>{ch.unread}</span>}
@@ -646,9 +665,10 @@ export default function ABM() {
             <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, display: "flex", gap: 6 }}>
               <Input value={chatInput} onChange={setChatInput} placeholder="Type a message..." onKeyDown={(e: any) => e.key === "Enter" && sendMsg()} style={{ flex: 1 }} />
               <Btn primary small onClick={sendMsg}><I name="send" size={12} /></Btn>
-            </div>
-          </div>
-        </div>}
+             </div>
+           </div>
+           </div>
+         </div>}
 
         {/* ═══ DECK BUILDER ═══ */}
         {tab === "deckbuilder" && <PresentonApp />}
