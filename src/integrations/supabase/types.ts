@@ -281,6 +281,48 @@ export type Database = {
         }
         Relationships: []
       }
+      mcp_connections: {
+        Row: {
+          auth_type: string
+          config: Json
+          created_at: string
+          credential_hint: string | null
+          id: string
+          label: string | null
+          status: string
+          toolkit_name: string
+          toolkit_slug: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auth_type: string
+          config?: Json
+          created_at?: string
+          credential_hint?: string | null
+          id?: string
+          label?: string | null
+          status?: string
+          toolkit_name: string
+          toolkit_slug: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auth_type?: string
+          config?: Json
+          created_at?: string
+          credential_hint?: string | null
+          id?: string
+          label?: string | null
+          status?: string
+          toolkit_name?: string
+          toolkit_slug?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
