@@ -57,11 +57,6 @@ export const useLiveMeetings = () => {
     enabled: !!session,
     refetchInterval: 15000,
     queryFn: async (): Promise<LiveMeeting[]> => {
-      // Close out meetings whose host stopped sending heartbeats.
-      await supabase.rpc("expire_stale_meetings" as never).then(
-        () => undefined,
-        () => undefined,
-      );
       const { data, error } = await table("live_meetings")
         .select(SELECT)
         .eq("status", "live")
