@@ -7,7 +7,7 @@ const C = {
   accent: "#5cb85c", accentGlow: "rgba(92,184,92,0.12)", hot: "#e85d4a",
   text: "#f0f0f0", textDim: "#999", textMuted: "#555", white: "#fff",
 };
-const F = { display: "'Outfit',sans-serif", body: "'DM Sans',sans-serif" };
+const F = { display: "'Satoshi',sans-serif", body: "'Satoshi',sans-serif" };
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);

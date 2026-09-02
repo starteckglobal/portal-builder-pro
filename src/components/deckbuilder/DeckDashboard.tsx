@@ -6,7 +6,7 @@ import { exportPPTX } from "./DeckExport";
 import { toast } from "sonner";
 
 const C = { bg: "#080808", surface: "#0f0f0f", card: "#161616", cardH: "#1e1e1e", border: "#252525", accent: "#5cb85c", accentDim: "#3d8b3d", hot: "#e85d4a", text: "#f0f0f0", textDim: "#999", textMuted: "#555", white: "#fff", blue: "#5b9cf5", purple: "#a78bfa" };
-const F = { display: "'Outfit',sans-serif", body: "'DM Sans',sans-serif" };
+const F = { display: "'Satoshi',sans-serif", body: "'Satoshi',sans-serif" };
 
 const TONES = ["Professional", "Sales Pitch", "Educational", "Casual"];
 

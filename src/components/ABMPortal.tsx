@@ -66,7 +66,7 @@ const C = {
   blueGlow: "rgba(91,156,245,0.12)", purple: "#a78bfa", orange: "#f0a050",
   text: "#f0f0f0", textDim: "#999", textMuted: "#555", white: "#fff",
 };
-const F = { display: "'Outfit',sans-serif", body: "'DM Sans',sans-serif", mono: "'JetBrains Mono',monospace" };
+const F = { display: "'Satoshi',sans-serif", body: "'Satoshi',sans-serif", mono: "'JetBrains Mono',monospace" };
 
 // ─── ICONS ──────────────────────────────────────────────────
 const Ico = ({ d, size = 18 }: { d: string; size?: number }) => (

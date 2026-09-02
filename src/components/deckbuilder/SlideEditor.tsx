@@ -9,7 +9,7 @@ import { exportPPTX, exportPDF } from "./DeckExport";
 
 // Reuse portal theme constants
 const C = { bg: "#080808", surface: "#0f0f0f", card: "#161616", cardH: "#1e1e1e", border: "#252525", accent: "#5cb85c", text: "#f0f0f0", textDim: "#999", textMuted: "#555", white: "#fff", blue: "#5b9cf5" };
-const F = { display: "'Outfit',sans-serif", body: "'DM Sans',sans-serif" };
+const F = { display: "'Satoshi',sans-serif", body: "'Satoshi',sans-serif" };
 
 function SortableSlideCard({ slide, index, selected, onSelect, onUpdate, onDelete }: any) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: slide.id });

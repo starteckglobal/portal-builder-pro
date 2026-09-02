@@ -12,7 +12,7 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, loading } = useAuth();
-  if (loading) return <div style={{ background: "#080808", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#5cb85c", fontFamily: "'DM Sans',sans-serif" }}>Loading...</div>;
+  if (loading) return <div style={{ background: "#080808", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#5cb85c", fontFamily: "'Satoshi',sans-serif" }}>Loading...</div>;
   if (!session) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 };
