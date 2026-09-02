@@ -196,6 +196,12 @@ const renderActiveShape = (props: any) => {
   );
 };
 
+const cardSx: React.CSSProperties = {
+  background: "linear-gradient(135deg,#010101 0%,#090909 55%,#010101 100%)",
+  border: "1px solid rgba(255,255,255,0.10)",
+  boxShadow: "0 18px 40px rgba(0,0,0,.55)",
+};
+
 const tooltipStyle = { background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 11, color: C.text, boxShadow: "0 4px 16px rgba(0,0,0,.4)" };
 
 // ─── ALGORITHMS ─────────────────────────────────────────────
@@ -428,7 +434,7 @@ export default function ABM() {
             <I name="bell" size={16} />
             {unreadCount > 0 && <span style={{ position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: "50%", background: C.hot, color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{unreadCount}</span>}
           </button>
-          {showNotifs && <div style={{ position: "absolute", top: 42, right: 0, width: 320, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, maxHeight: 400, overflowY: "auto", boxShadow: "0 8px 32px rgba(0,0,0,.5)" }}>
+          {showNotifs && <div style={{ position: "absolute", top: 42, right: 0, width: 320, ...cardSx, borderRadius: 12, padding: 12, maxHeight: 400, overflowY: "auto", boxShadow: "0 8px 32px rgba(0,0,0,.5)" }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: C.white, marginBottom: 8, display: "flex", justifyContent: "space-between" }}>
               Notifications
               <button onClick={() => { markAllRead.mutate(); setShowNotifs(false); }} style={{ background: "none", border: "none", color: C.accent, fontSize: 10, cursor: "pointer" }}>Mark all read</button>
@@ -539,7 +545,7 @@ export default function ABM() {
               <div key={col} onDragOver={(e) => e.preventDefault()} onDrop={() => dropOnCol(col)} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: 10, borderTop: `3px solid ${color}` }}>
                 <div style={{ fontSize: 10, fontWeight: 600, color, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10, display: "flex", justifyContent: "space-between" }}>{label}<span style={{ background: color + "20", padding: "1px 6px", borderRadius: 8, fontSize: 9 }}>{kanban[col]?.length || 0}</span></div>
                 {(kanban[col] || []).map((card: any) => (
-                  <div key={card.id} draggable onDragStart={() => { setDragCard(card.id); setDragFrom(col); }} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: 10, marginBottom: 6, cursor: "grab", transition: "all .15s" }}>
+                  <div key={card.id} draggable onDragStart={() => { setDragCard(card.id); setDragFrom(col); }} style={{ ...cardSx, borderRadius: 8, padding: 10, marginBottom: 6, cursor: "grab", transition: "all .15s" }}>
                     <div style={{ fontSize: 11, fontWeight: 600, color: C.white, marginBottom: 3 }}>{card.title}</div>
                     <div style={{ fontSize: 9, color: C.textDim }}>{card.client}</div>
                     <div style={{ fontSize: 9, color: C.textMuted, marginTop: 2 }}>→ {card.contact}</div>
@@ -591,7 +597,7 @@ export default function ABM() {
             <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Press Release Writer</h1>
             <Btn small onClick={() => setHistoryTab(historyTab === "press-release" ? null : "press-release")}><I name="notes" size={12} /> History ({aiHistory.filter(h => h.type === "press-release").length})</Btn>
           </div>
-          {historyTab === "press-release" && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
+          {historyTab === "press-release" && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Press Releases</div>
             {aiHistory.filter(h => h.type === "press-release").length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>}
             {aiHistory.filter(h => h.type === "press-release").map(h => (
@@ -607,7 +613,7 @@ export default function ABM() {
               </div>
             ))}
           </div>}
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
+          <div style={{ ...cardSx, borderRadius: 10, padding: 16, marginBottom: 14 }}>
             <Select value={prClient} onChange={setPrClient} options={dbLeads.map((l) => ({ value: l.name, label: l.name }))} placeholder="Select client..." />
             <div style={{ marginTop: 10 }}><TA value={prBrief} onChange={setPrBrief} placeholder="What's the news?" rows={3} /></div>
             <div style={{ marginTop: 10 }}>
@@ -616,7 +622,7 @@ export default function ABM() {
                </Btn>
             </div>
           </div>
-          {(prResult || prLoading) && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+          {(prResult || prLoading) && <div style={{ ...cardSx, borderRadius: 10, padding: 16 }}>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 4, marginBottom: 8 }}>
               <Btn small onClick={() => navigator.clipboard?.writeText(prResult).then(() => toast.success("Copied!"))}><I name="copy" size={11} /> Copy</Btn>
               {prResult && !prLoading && <Btn small primary onClick={() => { saveOutput.mutate({ type: "press-release", title: `${prClient} — ${prBrief.slice(0, 40)}`, content: prResult, inputs: { client: prClient, brief: prBrief } }); toast.success("Saved!"); }}><I name="notes" size={11} /> Save</Btn>}
@@ -631,7 +637,7 @@ export default function ABM() {
             <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Pitch Email Composer</h1>
             <Btn small onClick={() => setHistoryTab(historyTab === "pitch-email" ? null : "pitch-email")}><I name="notes" size={12} /> History ({aiHistory.filter(h => h.type === "pitch-email").length})</Btn>
           </div>
-          {historyTab === "pitch-email" && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
+          {historyTab === "pitch-email" && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Pitches</div>
             {aiHistory.filter(h => h.type === "pitch-email").length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>}
             {aiHistory.filter(h => h.type === "pitch-email").map(h => (
@@ -644,7 +650,7 @@ export default function ABM() {
               </div>
             ))}
           </div>}
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
+          <div style={{ ...cardSx, borderRadius: 10, padding: 16, marginBottom: 14 }}>
             <Select value={emailJ} onChange={setEmailJ} options={dbContacts.map((c) => ({ value: c.name, label: `${c.name} — ${c.outlet}` }))} placeholder="Select journalist..." />
             {emailJ && (() => { const j = dbContacts.find((c) => c.name === emailJ); return j ? <div style={{ background: "#0c0c0c", borderRadius: 6, padding: 8, margin: "8px 0", display: "flex", gap: 12, fontSize: 10, color: C.textDim }}><span>{j.outlet}</span><span>{j.beat}</span><Badge text={j.relationship} color={j.relationship === "strong" ? C.accent : C.blue} /></div> : null; })()}
             <TA value={emailAngle} onChange={setEmailAngle} placeholder="Story angle..." rows={2} />
@@ -654,7 +660,7 @@ export default function ABM() {
                </Btn>
             </div>
           </div>
-          {(emailResult || emailLoading) && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+          {(emailResult || emailLoading) && <div style={{ ...cardSx, borderRadius: 10, padding: 16 }}>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 4, marginBottom: 8 }}>
               <Btn small onClick={() => navigator.clipboard?.writeText(emailResult).then(() => toast.success("Copied!"))}><I name="copy" size={11} /> Copy</Btn>
               {emailResult && !emailLoading && <Btn small primary onClick={() => { saveOutput.mutate({ type: "pitch-email", title: `${emailJ} — ${emailAngle.slice(0, 40)}`, content: emailResult, inputs: { journalist: emailJ, angle: emailAngle } }); toast.success("Saved!"); }}><I name="notes" size={11} /> Save</Btn>}
@@ -666,7 +672,7 @@ export default function ABM() {
         {/* ═══ CREATIVE AI ═══ */}
         {tab === "imagegen" && <div style={{ padding: 24, maxWidth: 1000 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Creative AI Studio</h1>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
+          <div style={{ ...cardSx, borderRadius: 10, padding: 16, marginBottom: 14 }}>
             <TA value={imgPrompt} onChange={setImgPrompt} placeholder="Campaign concept, brand, audience..." rows={3} />
             <div style={{ marginTop: 10, textAlign: "right" }}>
                <Btn primary onClick={async () => { setImgLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'creative-concepts', prompt: imgPrompt } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setImgConcepts(data.concepts || []); } } catch (e: any) { toast.error(e.message || 'Generation failed'); } finally { setImgLoading(false); } }} disabled={imgLoading || !imgPrompt}>
@@ -676,7 +682,7 @@ export default function ABM() {
           </div>
           {imgConcepts.length > 0 && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10 }}>
             {imgConcepts.map((c: any, i: number) => (
-              <div key={i} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden" }}>
+              <div key={i} style={{ ...cardSx, borderRadius: 10, overflow: "hidden" }}>
                 <div style={{ height: 50, display: "flex" }}>{(c.palette || []).map((cl: string, j: number) => <div key={j} style={{ flex: 1, background: cl }} />)}</div>
                  <div style={{ padding: 14 }}>
                    <div style={{ fontSize: 12, fontWeight: 600, color: C.accent, marginBottom: 4 }}>{c.title}</div>
@@ -693,7 +699,7 @@ export default function ABM() {
         {/* ═══ MEDIA LIST ═══ */}
         {tab === "medialist" && <div style={{ padding: 24, maxWidth: 1200 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Media Lists</h1>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+          <div style={{ ...cardSx, borderRadius: 10 }}>
             {dbContacts.map((c, i) => (
               <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 80px 70px 60px", alignItems: "center", padding: "9px 14px", borderBottom: i < dbContacts.length - 1 ? `1px solid ${C.border}` : "none", fontSize: 11 }}>
                 <div style={{ fontWeight: 500, color: C.white }}>{c.name}</div>
@@ -754,13 +760,13 @@ export default function ABM() {
             <Stat label="Sentiment" value="94%" icon="health" color={C.blue} glow={C.blueGlow} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
+            <div style={{ ...cardSx, borderRadius: 12, padding: 16 }}>
               <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 10px", color: C.accent }}>Reach Over Time</h3>
               <ResponsiveContainer width="100%" height={180}>
-                <LineChart data={CHART_DATA}><CartesianGrid strokeDasharray="3 3" stroke={C.border} /><XAxis dataKey="month" tick={{ fontSize: 10, fill: C.textDim }} /><YAxis tick={{ fontSize: 10, fill: C.textDim }} /><Tooltip contentStyle={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 11 }} /><Line type="monotone" dataKey="reach" stroke={C.accent} strokeWidth={2} dot={{ fill: C.accent }} /></LineChart>
+                <LineChart data={CHART_DATA}><CartesianGrid strokeDasharray="3 3" stroke={C.border} /><XAxis dataKey="month" tick={{ fontSize: 10, fill: C.textDim }} /><YAxis tick={{ fontSize: 10, fill: C.textDim }} /><Tooltip contentStyle={{ ...cardSx, borderRadius: 8, fontSize: 11 }} /><Line type="monotone" dataKey="reach" stroke={C.accent} strokeWidth={2} dot={{ fill: C.accent }} /></LineChart>
               </ResponsiveContainer>
             </div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
+            <div style={{ ...cardSx, borderRadius: 12, padding: 16 }}>
               <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 10px", color: C.accent }}>Smart Pitch Timing</h3>
               {(() => {
                 const best = bestPitchDay([{ day: "Tue", response: "positive" }, { day: "Tue", response: "positive" }, { day: "Wed", response: "positive" }, { day: "Mon", response: "negative" }, { day: "Tue", response: "positive" }, { day: "Thu", response: "negative" }, { day: "Wed", response: "positive" }]);
@@ -777,7 +783,7 @@ export default function ABM() {
         {/* ═══ ROI CALCULATOR ═══ */}
         {tab === "roi" && <div style={{ padding: 24, maxWidth: 800 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>ROI Calculator</h1>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20 }}>
+          <div style={{ ...cardSx, borderRadius: 12, padding: 20 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
               <div><label style={{ fontSize: 10, color: C.textMuted, display: "block", marginBottom: 4 }}>Monthly Retainer ($)</label><Input value={roiRetainer} onChange={setRoiRetainer} type="number" /></div>
               <div><label style={{ fontSize: 10, color: C.textMuted, display: "block", marginBottom: 4 }}>Total Ad Equivalency ($)</label><Input value={roiAdValue} onChange={setRoiAdValue} type="number" /></div>
@@ -804,7 +810,7 @@ export default function ABM() {
           {meetingActions && <div style={{ marginTop: 14 }}>
             <h3 style={{ fontSize: 12, fontWeight: 600, color: C.accent, marginBottom: 10 }}>Extracted Actions ({meetingActions.length})</h3>
             {meetingActions.map((a: any, i: number) => (
-              <div key={i} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12, marginBottom: 6, borderLeft: `3px solid ${a.priority === "high" ? C.hot : a.priority === "medium" ? C.orange : C.accent}` }}>
+              <div key={i} style={{ ...cardSx, borderRadius: 8, padding: 12, marginBottom: 6, borderLeft: `3px solid ${a.priority === "high" ? C.hot : a.priority === "medium" ? C.orange : C.accent}` }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: C.white }}>{a.task}</div>
                 <div style={{ display: "flex", gap: 12, marginTop: 4, fontSize: 10, color: C.textDim }}>
                   <span>👤 {a.assignee}</span><span>📅 {a.deadline}</span><Badge text={a.priority} color={a.priority === "high" ? C.hot : C.orange} />
@@ -826,7 +832,7 @@ export default function ABM() {
           </div>
           {competitorResult && <div style={{ marginTop: 14 }}>
             {competitorResult.map((c: any, i: number) => (
-              <div key={i} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14, marginBottom: 8, borderLeft: `3px solid ${c.urgency === "high" ? C.hot : C.orange}` }}>
+              <div key={i} style={{ ...cardSx, borderRadius: 8, padding: 14, marginBottom: 8, borderLeft: `3px solid ${c.urgency === "high" ? C.hot : C.orange}` }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: C.white, marginBottom: 4 }}>{c.opportunity}</div>
                 <div style={{ display: "flex", gap: 12, fontSize: 10, color: C.textDim }}><span>📰 {c.outlet}</span><span>📐 {c.angle}</span><Badge text={c.urgency} color={c.urgency === "high" ? C.hot : C.orange} /></div>
               </div>
@@ -844,7 +850,7 @@ export default function ABM() {
              </Btn>
           </div>
           {boilerplates.map((b) => (
-            <div key={b.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14, marginBottom: 8 }}>
+            <div key={b.id} style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: C.accent }}>{b.client}</span>
                 <div style={{ display: "flex", gap: 4 }}>
@@ -865,7 +871,7 @@ export default function ABM() {
               <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= onboardStep ? C.accent : C.border }} />
             ))}
           </div>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 24 }}>
+          <div style={{ ...cardSx, borderRadius: 12, padding: 24 }}>
             {onboardStep === 0 && <div>
               <h3 style={{ fontSize: 14, fontWeight: 600, color: C.accent, margin: "0 0 14px" }}>Step 1: Company Info</h3>
               <div style={{ display: "grid", gap: 10 }}>
@@ -905,7 +911,7 @@ export default function ABM() {
             <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Report Builder</h1>
             <Btn small onClick={() => setHistoryTab(historyTab === "report" ? null : "report")}><I name="notes" size={12} /> History ({aiHistory.filter(h => h.type === "report").length})</Btn>
           </div>
-          {historyTab === "report" && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
+          {historyTab === "report" && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Reports</div>
             {aiHistory.filter(h => h.type === "report").length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>}
             {aiHistory.filter(h => h.type === "report").map(h => (
@@ -918,7 +924,7 @@ export default function ABM() {
               </div>
             ))}
           </div>}
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, marginBottom: 14 }}>
+          <div style={{ ...cardSx, borderRadius: 10, padding: 16, marginBottom: 14 }}>
             <Select value={reportClient} onChange={setReportClient} options={[...new Set(dbCoverage.map((c) => c.client))].map((c) => ({ value: c, label: c }))} placeholder="Choose client..." />
             {reportClient && <div style={{ background: "#0c0c0c", borderRadius: 7, padding: 10, marginTop: 10, display: "flex", gap: 16 }}>
               <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{dbCoverage.filter((c) => c.client === reportClient).length}</span><div style={{ fontSize: 9, color: C.textMuted }}>Placements</div></div>
@@ -930,7 +936,7 @@ export default function ABM() {
                </Btn>
             </div>
           </div>
-          {(reportResult || reportLoading) && <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+          {(reportResult || reportLoading) && <div style={{ ...cardSx, borderRadius: 10, padding: 16 }}>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 4, marginBottom: 8 }}>
               <Btn small onClick={() => navigator.clipboard?.writeText(reportResult).then(() => toast.success("Copied!"))}><I name="copy" size={11} /> Copy</Btn>
               {reportResult && !reportLoading && <Btn small primary onClick={() => { saveOutput.mutate({ type: "report", title: `${reportClient} — Monthly Report`, content: reportResult, inputs: { client: reportClient } }); toast.success("Saved!"); }}><I name="notes" size={11} /> Save</Btn>}
@@ -944,7 +950,7 @@ export default function ABM() {
         {/* ═══ MEDIA MONITOR ═══ */}
         {tab === "monitor" && <div style={{ padding: 24, maxWidth: 1200 }}>
           <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Media Monitor</h1>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+          <div style={{ ...cardSx, borderRadius: 10, padding: 16 }}>
             {dbCoverage.map((c, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < dbCoverage.length - 1 ? `1px solid ${C.border}` : "none" }}>
                 <div style={{ flex: 1 }}><div style={{ fontSize: 11, fontWeight: 500, color: C.white }}>{c.title}</div><div style={{ fontSize: 9, color: C.textDim }}>{c.outlet} · {c.client} · {c.reach}</div></div>
@@ -968,13 +974,13 @@ export default function ABM() {
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+            <div style={{ ...cardSx, borderRadius: 10, padding: 16 }}>
               <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 8px", color: C.accent }}>Coverage</h3>
               {dbCoverage.filter((c) => c.client === portalClient).map((c, i) => (
                 <div key={i} style={{ padding: "7px 0", borderBottom: `1px solid ${C.border}` }}><div style={{ fontSize: 10, fontWeight: 500 }}>{c.title}</div><div style={{ fontSize: 9, color: C.textDim }}>{c.outlet} · {c.date}</div></div>
               ))}
             </div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16 }}>
+            <div style={{ ...cardSx, borderRadius: 10, padding: 16 }}>
               <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 8px", color: C.purple }}>Pending Approval</h3>
               {[{ item: "Press Release v2", due: "Apr 10", u: true }, { item: "Social batch #5", due: "Apr 11", u: false }, { item: "Media kit update", due: "Apr 12", u: false }].map((a, i) => (
                 <div key={i} style={{ background: "#0c0c0c", borderRadius: 6, padding: 8, marginBottom: 5, borderLeft: `2px solid ${a.u ? C.hot : C.accent}` }}>
@@ -983,7 +989,7 @@ export default function ABM() {
                 </div>
               ))}
             </div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 16, gridColumn: "1/-1" }}>
+            <div style={{ ...cardSx, borderRadius: 10, padding: 16, gridColumn: "1/-1" }}>
               <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 10px", color: C.accent }}>Campaign Progress</h3>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8 }}>
                 {[{ p: "Strategy", pct: 100 }, { p: "Content", pct: 75 }, { p: "Outreach", pct: 60 }, { p: "Reporting", pct: 20 }].map((s, i) => (
@@ -1009,7 +1015,7 @@ export default function ABM() {
       {/* CHANGE PASSWORD MODAL */}
       {showChangePw && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.7)" }} onClick={() => setShowChangePw(false)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: 28, width: 380, maxWidth: "90vw" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ ...cardSx, borderRadius: 14, padding: 28, width: 380, maxWidth: "90vw" }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: C.white, fontFamily: F.display, marginBottom: 18 }}>Change Password</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <Input type="password" value={pwCurrent} onChange={setPwCurrent} placeholder="Current password" />
