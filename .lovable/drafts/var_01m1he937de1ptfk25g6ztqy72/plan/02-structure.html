@@ -1,0 +1,59 @@
+<svg viewBox="0 0 640 330" xmlns="http://www.w3.org/2000/svg" style="font-family: var(--font-sans); width: 100%; height: auto;">
+  <style>
+    .lbl { fill: hsl(var(--foreground)); font-size: 14px; font-weight: 480; }
+    .note { fill: hsl(var(--muted-foreground)); font-size: 12px; }
+    .mono { fill: hsl(var(--muted-foreground)); font-size: 11px; font-family: var(--font-mono); }
+    .bx { fill: none; stroke: hsl(var(--muted-foreground)); stroke-width: 1; }
+    .zone { fill: none; stroke: hsl(var(--border)); stroke-width: 1; stroke-dasharray: 4 3; }
+    .wire { stroke: hsl(var(--muted-foreground)); stroke-width: 1; fill: none; }
+    .tag { fill: hsl(var(--border)); font-size: 11px; }
+  </style>
+  <defs>
+    <marker id="cv" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,1 L8,5 L0,9" fill="none" stroke="hsl(var(--muted-foreground))" stroke-width="1.2"/>
+    </marker>
+  </defs>
+
+  <rect class="zone" x="8" y="24" width="248" height="286" rx="8"/>
+  <text class="tag" x="18" y="18">portal</text>
+
+  <rect class="bx" x="24" y="44" width="96" height="248" rx="8"/>
+  <text class="note" x="36" y="66">Sidebar</text>
+  <rect x="34" y="80" width="76" height="10" rx="5" fill="hsl(var(--border))"/>
+  <rect x="34" y="98" width="60" height="10" rx="5" fill="hsl(var(--border))"/>
+  <rect x="34" y="116" width="76" height="18" rx="8" fill="hsl(var(--accent))"/>
+  <text x="42" y="129" style="font-size:10px" fill="hsl(var(--accent-foreground))">Live Meeting</text>
+  <rect x="34" y="142" width="66" height="10" rx="5" fill="hsl(var(--border))"/>
+  <rect x="34" y="160" width="72" height="10" rx="5" fill="hsl(var(--border))"/>
+
+  <rect class="bx" x="136" y="44" width="104" height="112" rx="8"/>
+  <text class="lbl" x="148" y="70">Landing</text>
+  <text class="note" x="148" y="90">Start instant</text>
+  <text class="note" x="148" y="108">Join by name</text>
+  <text class="mono" x="148" y="132">abm-pr-4f21</text>
+
+  <rect class="bx" x="136" y="180" width="104" height="112" rx="8"/>
+  <text class="lbl" x="148" y="206">In meeting</text>
+  <text class="note" x="148" y="226">Copy invite</text>
+  <text class="note" x="148" y="244">Leave</text>
+
+  <path class="wire" d="M188,156 L188,178" marker-end="url(#cv)"/>
+
+  <rect class="bx" x="300" y="120" width="150" height="90" rx="8"/>
+  <text class="lbl" x="316" y="150">@jitsi/react-sdk</text>
+  <text class="note" x="316" y="170">official Jitsi module</text>
+  <text class="mono" x="316" y="190">external_api.js</text>
+
+  <rect class="bx" x="494" y="120" width="130" height="90" rx="8"/>
+  <text class="lbl" x="510" y="150">Jitsi server</text>
+  <text class="mono" x="510" y="170">meet.jit.si</text>
+  <text class="note" x="510" y="190">swappable domain</text>
+
+  <path class="wire" d="M240,200 C268,200 272,165 298,165" marker-end="url(#cv)"/>
+  <path class="wire" d="M450,165 L492,165" marker-end="url(#cv)"/>
+
+  <circle cx="316" cy="248" r="9" fill="hsl(var(--accent))"/>
+  <text x="316" y="252" text-anchor="middle" style="font-size:11px" fill="hsl(var(--accent-foreground))">1</text>
+  <text class="note" x="334" y="252">Real Jitsi Meet UI renders here — its own toolbar and controls</text>
+  <text class="note" x="334" y="272">No database writes; no server components added to the project</text>
+</svg>
