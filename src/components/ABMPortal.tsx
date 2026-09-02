@@ -410,7 +410,7 @@ export default function ABM() {
 
   return (
     <SidebarProvider>
-      <div style={{ fontFamily: F.body, background: C.bg, color: C.text, height: "100vh", display: "flex", width: "100%", overflow: "hidden" }}>
+      <div style={{ fontFamily: F.body, background: "transparent", color: C.text, height: "100vh", display: "flex", width: "100%", overflow: "hidden" }}>
         <AppSidebar
           tab={tab}
           onSelect={(id) => (id === "deckbuilder" ? navigate("/deck-builder") : setTab(id))}
@@ -421,8 +421,8 @@ export default function ABM() {
         />
 
       {/* MAIN */}
-      <SidebarInset style={{ flex: 1, overflow: "auto", position: "relative", background: C.bg }}>
-        <div style={{ position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: C.bg, borderBottom: `1px solid ${C.border}` }}>
+      <SidebarInset style={{ flex: 1, overflow: "auto", position: "relative", background: "transparent" }}>
+        <div style={{ position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "rgba(8,8,8,.72)", backdropFilter: "blur(12px)", borderBottom: `1px solid ${C.border}` }}>
           <SidebarTrigger />
         </div>
         <div style={{ height: 2, background: `linear-gradient(90deg,${C.accent},transparent 70%)` }} />
