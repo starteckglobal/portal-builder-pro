@@ -392,6 +392,7 @@ export default function ABM() {
   useEffect(() => { chatEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [chatCh, msgs]);
 
   // ─── DERIVED DATA ───────────────────────────────────────
+  const clientOptions = clients.map((client: any) => ({ value: client.name, label: client.name })).filter((client: { value?: string; label?: string }) => client.value && client.label);
   const activeClientCount = new Set([
     ...clients.map((client: any) => client.name),
     ...dbCoverage.map((coverage) => coverage.client),
@@ -927,9 +928,9 @@ export default function ABM() {
          {/* ═══ ROI CALCULATOR ═══ */}
          {tab === "roi" && <div style={{ padding: 24, maxWidth: 800 }}>
              <SectionHeader title="ROI Calculator" onAdd={() => openAdd("Save ROI scenario", [
-              { name: "name", label: "Scenario name", required: true, maxLength: 120 },
-              { name: "client", label: "Client", type: "select", options: [{ value: "", label: "No client" }, ...clientOptions], maxLength: 120 },
-             { name: "retainer", label: "Monthly retainer", type: "number", required: true },
+               { name: "name", label: "Scenario name", required: true, maxLength: 120 },
+               { name: "client", label: "Client", type: "select", options: [{ value: "", label: "No client" }, ...clientOptions] },
+              { name: "retainer", label: "Monthly retainer", type: "number", required: true },
              { name: "ad_value", label: "Media value", type: "number", required: true },
              { name: "months", label: "Months", type: "number", required: true, defaultValue: "12" },
            ], (v) => addROIScenario.mutateAsync({ ...v, roi: calcROI(v.retainer, v.ad_value, v.months).roi }))} />
@@ -1070,7 +1071,15 @@ export default function ABM() {
             </div>}
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 20 }}>
               <Btn small onClick={() => setOnboardStep((p) => Math.max(0, p - 1))} disabled={onboardStep === 0}>← Back</Btn>
-              <Btn primary onClick={() => setOnboardStep((p) => Math.min(3, p + 1))} disabled={onboardStep === 3}>{onboardStep === 2 ? "Complete Setup →" : "Next →"}</Btn>
+               <Btn primary onClick={async () => {
+                 if (onboardStep === 2) {
+                   try {
+                     await addClient.mutateAsync({ name: onboardData.name, industry: onboardData.industry, website: onboardData.website, contact_email: onboardData.contact, status: "active", notes: [onboardData.goals, onboardData.audience, onboardData.messages, onboardData.boilerplate, onboardData.spokesperson, onboardData.voice].filter(Boolean).join("\n\n") });
+                     setOnboardStep(3);
+                     toast.success("Client added to your portal");
+                   } catch (error: any) { toast.error(error?.message || "Could not save client"); }
+                 } else setOnboardStep((p) => Math.min(3, p + 1));
+               }} disabled={onboardStep === 3 || addClient.isPending}>{onboardStep === 2 ? (addClient.isPending ? "Saving…" : "Complete Setup →") : "Next →"}</Btn>
             </div>
           </div>
         </div>}
@@ -1104,7 +1113,7 @@ export default function ABM() {
             ))}
           </div>}
           <div style={{ ...cardSx, borderRadius: 10, padding: 16, marginBottom: 14 }}>
-            <Select value={reportClient} onChange={setReportClient} options={[...new Set(dbCoverage.map((c) => c.client))].map((c) => ({ value: c, label: c }))} placeholder="Choose client..." />
+            <Select value={reportClient} onChange={setReportClient} options={[...new Map([...clientOptions, ...dbCoverage.map((c) => ({ value: c.client, label: c.client }))].filter((c) => c.value).map((c) => [c.value, c])).values()]} placeholder="Choose client..." />
             {reportClient && <div style={{ background: "#0c0c0c", borderRadius: 7, padding: 10, marginTop: 10, display: "flex", gap: 16 }}>
               <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{dbCoverage.filter((c) => c.client === reportClient).length}</span><div style={{ fontSize: 9, color: C.textMuted }}>Placements</div></div>
               <div><span style={{ fontSize: 18, fontFamily: F.display, fontWeight: 700, color: C.accent }}>{dbCoverage.filter((c) => c.client === reportClient).reduce((a, c) => a + parseInt(c.reach), 0).toLocaleString()}</span><div style={{ fontSize: 9, color: C.textMuted }}>Reach</div></div>
