@@ -22,9 +22,11 @@ create policy "Authenticated users can view meetings"
 create policy "Users can create meetings"
   on public.live_meetings for insert to authenticated with check (auth.uid() = host_id);
 
--- Any signed-in participant may refresh the heartbeat; only the host may end it.
-create policy "Participants can keep meetings alive"
-  on public.live_meetings for update to authenticated using (true) with check (true);
+-- Only hosts may update the meeting record or end it; participants update their own presence row.
+create policy "Hosts can update meetings"
+  on public.live_meetings for update to authenticated
+  using (auth.uid() = host_id)
+  with check (auth.uid() = host_id);
 
 create policy "Hosts can delete their meetings"
   on public.live_meetings for delete to authenticated using (auth.uid() = host_id);

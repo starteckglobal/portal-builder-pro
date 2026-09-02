@@ -173,7 +173,10 @@ export const useMeetingPresence = () => {
 
   const heartbeat = async (id: string) => {
     const now = new Date().toISOString();
-    await table("live_meetings").update({ last_seen_at: now } as never).eq("id", id);
+    const meeting = await table("live_meetings").select("host_id").eq("id", id).maybeSingle();
+    if (user?.id === (meeting.data as unknown as { host_id?: string } | null)?.host_id) {
+      await table("live_meetings").update({ last_seen_at: now } as never).eq("id", id);
+    }
     if (user) {
       await table("meeting_participants")
         .update({ last_seen_at: now } as never)
