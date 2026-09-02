@@ -1,3 +1,4 @@
+import { ChevronRight, ChevronsUpDown, LogOut, KeyRound, UserRound, Bell, Check } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,9 +10,21 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import abmLogo from "@/assets/abm-logo.png";
 import { I } from "@/components/portalIcons";
 
@@ -39,71 +52,200 @@ export const NAV = [
   { id: "settings", label: "Settings", icon: "settings" },
 ];
 
+const byId = (id: string) => NAV.find((n) => n.id === id)!;
+
+/** Grouped nav with collapsible pop-out sub-menus (shadcn sidebar pattern). */
+const GROUPS: { id: string; label: string; icon: string; items: typeof NAV }[] = [
+  {
+    id: "workspace",
+    label: "Workspace",
+    icon: "dashboard",
+    items: [byId("dashboard"), byId("leads"), byId("kanban"), byId("chat")],
+  },
+  {
+    id: "create",
+    label: "Create",
+    icon: "deck",
+    items: [byId("deckbuilder"), byId("pressrelease"), byId("pitchemail"), byId("imagegen"), byId("boilerplate")],
+  },
+  {
+    id: "media",
+    label: "Media",
+    icon: "monitor",
+    items: [byId("medialist"), byId("clipper"), byId("calendar"), byId("monitor"), byId("competitor")],
+  },
+  {
+    id: "insights",
+    label: "Insights",
+    icon: "chart",
+    items: [byId("analytics"), byId("roi"), byId("reports"), byId("meeting")],
+  },
+  {
+    id: "clients",
+    label: "Clients",
+    icon: "portal",
+    items: [byId("onboard"), byId("portal"), byId("settings")],
+  },
+];
+
+const WORKSPACES = [
+  { name: "ABM PR", plan: "New Orleans" },
+  { name: "ABM PR", plan: "Baton Rouge" },
+  { name: "ABM PR", plan: "Agency HQ" },
+];
+
 type AppSidebarProps = {
   tab: string;
   onSelect: (id: string) => void;
   userEmail?: string | null;
   onChangePassword: () => void;
   onSignOut: () => void;
+  onNotifications?: () => void;
+  workspace?: string;
+  onWorkspaceChange?: (name: string) => void;
 };
 
-export function AppSidebar({ tab, onSelect, userEmail, onChangePassword, onSignOut }: AppSidebarProps) {
+export function AppSidebar({
+  tab,
+  onSelect,
+  userEmail,
+  onChangePassword,
+  onSignOut,
+  onNotifications,
+  workspace,
+  onWorkspaceChange,
+}: AppSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const active = workspace ?? WORKSPACES[0].plan;
 
   return (
     <Sidebar collapsible="icon">
+      {/* ── HEADER: workspace switcher pop-out ── */}
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-1 py-1.5">
-          <img src={abmLogo} alt="ABM PR" className="h-7 w-7 shrink-0 rounded-md object-contain" />
-          {!collapsed && (
-            <div className="min-w-0">
-              <div className="truncate text-sm font-bold leading-none text-white">ABM PR</div>
-              <div className="text-[7px] uppercase tracking-[2px] text-muted-foreground">New Orleans</div>
-            </div>
-          )}
-        </div>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent">
+                  <img src={abmLogo} alt="ABM PR" className="size-8 shrink-0 rounded-md object-contain" />
+                  <div className="grid flex-1 text-left leading-tight">
+                    <span className="truncate text-sm font-bold text-white">ABM PR</span>
+                    <span className="truncate text-[10px] text-muted-foreground">{active}</span>
+                  </div>
+                  <ChevronsUpDown className="ml-auto size-4 opacity-60" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                side={collapsed ? "right" : "bottom"}
+                className="w-56 rounded-lg"
+              >
+                <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Workspaces
+                </DropdownMenuLabel>
+                {WORKSPACES.map((w) => (
+                  <DropdownMenuItem key={w.plan} onClick={() => onWorkspaceChange?.(w.plan)} className="gap-2 text-xs">
+                    <img src={abmLogo} alt="" className="size-4 rounded object-contain" />
+                    <span className="flex-1">{w.plan}</span>
+                    {w.plan === active && <Check className="size-3.5 text-primary" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
 
+      {/* ── CONTENT: collapsible groups with sub-menus ── */}
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV.map((n) => (
-                <SidebarMenuItem key={n.id}>
-                  <SidebarMenuButton
-                    className="abm-nav-item text-[11px] font-bold text-white"
-                    isActive={tab === n.id}
-                    tooltip={n.label}
-                    onClick={() => onSelect(n.id)}
-                  >
-                    <I name={n.icon} size={14} />
-                    <span>{n.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {GROUPS.map((g) => {
+                const hasActive = g.items.some((i) => i.id === tab);
+                return (
+                  <Collapsible key={g.id} asChild defaultOpen={hasActive} className="group/collapsible">
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton
+                          className="abm-nav-item text-[11px] font-bold text-white"
+                          isActive={hasActive}
+                          tooltip={g.label}
+                        >
+                          <I name={g.icon} size={14} />
+                          <span>{g.label}</span>
+                          <ChevronRight className="ml-auto size-3.5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {g.items.map((n) => (
+                            <SidebarMenuSubItem key={n.id}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={tab === n.id}
+                                className="cursor-pointer text-[11px] text-white"
+                              >
+                                <button type="button" onClick={() => onSelect(n.id)} className="w-full text-left">
+                                  <I name={n.icon} size={12} />
+                                  <span>{n.label}</span>
+                                </button>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
+      {/* ── FOOTER: user pop-out menu ── */}
       <SidebarFooter>
-        {!collapsed && userEmail && (
-          <div className="truncate px-2 text-[9px] text-muted-foreground">{userEmail}</div>
-        )}
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="text-[11px]" tooltip="Change Password" onClick={onChangePassword}>
-              <I name="lock" size={14} />
-              <span>Change Password</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="text-[11px] text-destructive hover:text-destructive" tooltip="Sign Out" onClick={onSignOut}>
-              <I name="logout" size={14} />
-              <span>Sign Out</span>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
+                    {(userEmail ?? "U").slice(0, 2).toUpperCase()}
+                  </span>
+                  <div className="grid flex-1 text-left leading-tight">
+                    <span className="truncate text-xs font-bold text-white">
+                      {userEmail?.split("@")[0] ?? "Account"}
+                    </span>
+                    <span className="truncate text-[10px] text-muted-foreground">{userEmail ?? "Signed in"}</span>
+                  </div>
+                  <ChevronsUpDown className="ml-auto size-4 opacity-60" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side={collapsed ? "right" : "top"} className="w-60 rounded-lg">
+                <DropdownMenuLabel className="text-xs font-normal">
+                  <div className="font-bold text-white">{userEmail?.split("@")[0] ?? "Account"}</div>
+                  <div className="truncate text-[10px] text-muted-foreground">{userEmail}</div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="gap-2 text-xs" onClick={() => onSelect("settings")}>
+                  <UserRound className="size-3.5" /> Account
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 text-xs" onClick={() => onNotifications?.()}>
+                  <Bell className="size-3.5" /> Notifications
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 text-xs" onClick={onChangePassword}>
+                  <KeyRound className="size-3.5" /> Change Password
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="gap-2 text-xs text-destructive focus:text-destructive" onClick={onSignOut}>
+                  <LogOut className="size-3.5" /> Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
