@@ -577,7 +577,7 @@ export default function ABM() {
                  { name: "status", label: "Status", type: "select", options: ["hot", "warm", "cold"], required: true },
                  { name: "value", label: "Value", maxLength: 40 },
                  { name: "notes", label: "Notes", type: "textarea", maxLength: 1000 },
-               ], (v) => addLead.mutateAsync({ ...v, score: v.status === "hot" ? 90 : v.status === "warm" ? 60 : 20 }))}>+ Add Lead</Btn>
+                ], (v) => addLead.mutateAsync({ ...(v as any), score: v.status === "hot" ? 90 : v.status === "warm" ? 60 : 20 } as any))}>+ Add Lead</Btn>
               {["all", "hot", "warm", "cold"].map((f) => (
                 <button key={f} onClick={() => setLeadFilter(f)} style={{ padding: "5px 10px", borderRadius: 6, border: `1px solid ${leadFilter === f ? C.accent : C.border}`, background: leadFilter === f ? C.accentGlow : "transparent", color: leadFilter === f ? C.accent : C.textDim, fontSize: 10, cursor: "pointer", textTransform: "capitalize" }}>{f === "hot" ? "🔥 " : ""}{f}</button>
               ))}
@@ -613,7 +613,7 @@ export default function ABM() {
              { name: "column_name", label: "Stage", type: "select", options: ["draft", "sent", "followup", "placed", "declined"], required: true },
              { name: "owner", label: "Owner", maxLength: 120 },
              { name: "due_date", label: "Due date", type: "date" },
-           ], (v) => addKanbanCard.mutateAsync(v))} />
+            ], (v) => addKanbanCard.mutateAsync(v as any))} />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 10, minHeight: 400 }}>
             {([["draft", "Draft", C.textDim], ["sent", "Sent", C.blue], ["followup", "Follow Up", C.orange], ["placed", "Placed ✓", C.accent], ["declined", "Declined", C.hot]] as const).map(([col, label, color]) => (
               <div key={col} onDragOver={(e) => e.preventDefault()} onDrop={() => dropOnCol(col)} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: 10, borderTop: `3px solid ${color}` }}>
