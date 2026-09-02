@@ -935,7 +935,7 @@ export default function ABM() {
              { name: "months", label: "Months", type: "number", required: true, defaultValue: "12" },
            ], (v) => addROIScenario.mutateAsync({ ...v, roi: calcROI(v.retainer, v.ad_value, v.months).roi }))} />
            {roiScenarios.length > 0 && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14 }}><div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Scenarios</div>{roiScenarios.map((scenario: any) => <div key={scenario.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: C.textDim, padding: "4px 0" }}><span style={{ color: C.white }}>{scenario.name}</span><span>{scenario.client || "No client"} · {scenario.roi ?? "—"}% ROI</span></div>)}</div>}
-           <div style={{ ...cardSx, borderRadius: 12, padding: 20 }}
+           <div style={{ ...cardSx, borderRadius: 12, padding: 20 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
               <div><label style={{ fontSize: 10, color: C.textMuted, display: "block", marginBottom: 4 }}>Monthly Retainer ($)</label><Input value={roiRetainer} onChange={setRoiRetainer} type="number" /></div>
               <div><label style={{ fontSize: 10, color: C.textMuted, display: "block", marginBottom: 4 }}>Total Ad Equivalency ($)</label><Input value={roiAdValue} onChange={setRoiAdValue} type="number" /></div>
@@ -1102,11 +1102,10 @@ export default function ABM() {
                ], (v) => addReport.mutateAsync(v))}>+ Add Report</Btn>
              </div>
            </div>
-           {historyTab === "report" && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
-             <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Reports</div>
-             {storedReports.length > 0 && <div style={{ marginBottom: 8, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}><div style={{ fontSize: 10, color: C.textDim, marginBottom: 4 }}>Portal reports</div>{storedReports.map((r: any) => <div key={r.id} style={{ fontSize: 10, color: C.white, padding: "3px 0" }}>{r.title} <span style={{ color: C.textMuted }}>· {r.period || "No period"}</span></div>)}</div>}
-             {storedReports.length > 0 && <div style={{ marginBottom: 8, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}><div style={{ fontSize: 10, color: C.textDim, marginBottom: 4 }}>Portal reports</div>{storedReports.map((r: any) => <div key={r.id} style={{ fontSize: 10, color: C.white, padding: "3px 0" }}>{r.title} <span style={{ color: C.textMuted }}>· {r.period || "No period"}</span></div>)}</div>}
-             {aiHistory.filter(h => h.type === "report").length === 0 && storedReports.length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>
+            {historyTab === "report" && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Reports</div>
+              {storedReports.length > 0 && <div style={{ marginBottom: 8, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}><div style={{ fontSize: 10, color: C.textDim, marginBottom: 4 }}>Portal reports</div>{storedReports.map((r: any) => <div key={r.id} style={{ fontSize: 10, color: C.white, padding: "3px 0" }}>{r.title} <span style={{ color: C.textMuted }}>· {r.period || "No period"}</span></div>)}</div>}
+              {aiHistory.filter(h => h.type === "report").length === 0 && storedReports.length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>}
             {aiHistory.filter(h => h.type === "report").map(h => (
               <div key={h.id} style={{ borderBottom: `1px solid ${C.border}`, padding: "8px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div><div style={{ fontSize: 11, fontWeight: 500, color: C.white }}>{h.title}</div><div style={{ fontSize: 9, color: C.textMuted }}>{new Date(h.created_at).toLocaleDateString()}</div></div>
@@ -1244,7 +1243,8 @@ export default function ABM() {
                 setPwLoading(true);
                 try {
                   // Verify current password by signing in
-                  const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user!.email!, password: pwCurrent });
+                   if (!user?.email) { toast.error("No signed-in email available"); setPwLoading(false); return; }
+                   const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user.email, password: pwCurrent });
                   if (signInErr) { toast.error("Current password is incorrect"); setPwLoading(false); return; }
                   const { error } = await supabase.auth.updateUser({ password: pwNew });
                   if (error) { toast.error(error.message); } else { toast.success("Password updated!"); setShowChangePw(false); setPwCurrent(""); setPwNew(""); setPwConfirm(""); }
