@@ -429,10 +429,27 @@ export default function ABM() {
   }, [dbCoverage.length, dbKanbanCards, dbLeads]);
 
   // ─── HANDLERS ───────────────────────────────────────────
-  const sendMsg = () => {
+  const openAdd = (title: string, fields: FieldDef[], save: (values: Record<string, any>) => Promise<unknown> | unknown) => {
+    setAddModal({ title, fields, save: async (values) => { await save(values); } });
+  };
+
+  const submitAdd = async (values: Record<string, any>) => {
+    if (!addModal) return;
+    try {
+      await addModal.save(values);
+      setAddModal(null);
+      toast.success("Added to your portal");
+    } catch (error: any) {
+      toast.error(error?.message || "Could not save this record");
+    }
+  };
+
+  const sendMsg = async () => {
     if (!chatInput.trim()) return;
-    setMsgs((p) => ({ ...p, [chatCh]: [...(p[chatCh] || []), { id: Date.now(), user: "You", avatar: "YO", color: C.accent, text: chatInput, time: "Now", reactions: [] }] }));
+    const body = chatInput.trim();
+    setMsgs((p) => ({ ...p, [chatCh]: [...(p[chatCh] || []), { id: Date.now(), user: "You", avatar: "YO", color: C.accent, text: body, time: "Now", reactions: [] }] }));
     setChatInput("");
+    try { await addChatMessage.mutateAsync({ channel: chatCh, author: user?.email || "You", body }); } catch (error: any) { toast.error(error?.message || "Message could not be saved"); }
   };
 
   const dropOnCol = (toCol: string) => {
@@ -1050,12 +1067,14 @@ export default function ABM() {
         </div>}
 
         {/* ═══ SETTINGS ═══ */}
-        {tab === "settings" && <div style={{ padding: 24, maxWidth: 1100 }}>
-          <h1 style={{ fontSize: 22, fontFamily: F.display, fontWeight: 700, margin: "0 0 4px", color: C.white }}>Settings</h1>
-          <p style={{ color: C.textDim, margin: "0 0 18px", fontSize: 12 }}>Workspace connections and tool access</p>
-          <MCPConnectorsPanel />
-        </div>}
-      </SidebarInset>
+         {tab === "settings" && <div style={{ padding: 24, maxWidth: 1100 }}>
+           <h1 style={{ fontSize: 22, fontFamily: F.display, fontWeight: 700, margin: "0 0 4px", color: C.white }}>Settings</h1>
+           <p style={{ color: C.textDim, margin: "0 0 18px", fontSize: 12 }}>Workspace connections and tool access</p>
+           <MCPConnectorsPanel />
+         </div>}
+       </SidebarInset>
+
+       {addModal && <AddRecordModal open title={addModal.title} fields={addModal.fields} onClose={() => setAddModal(null)} onSubmit={submitAdd} />}
 
       {/* CHANGE PASSWORD MODAL */}
       {showChangePw && (
