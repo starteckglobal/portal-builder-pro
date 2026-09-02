@@ -425,13 +425,13 @@ export default function ABM() {
         </div>
         <nav style={{ flex: 1, padding: "4px 4px", overflowY: "auto" }}>
           {NAV.map((n) => (
-            <button key={n.id} onClick={() => setTab(n.id)} style={{
+            <button key={n.id} onClick={() => setTab(n.id)} className="abm-nav-item" style={{
               width: "100%", display: "flex", alignItems: "center", gap: 7,
               padding: collapsed ? "7px" : "6px 9px", marginBottom: 0, borderRadius: 6,
               border: "none", cursor: "pointer",
               background: tab === n.id ? C.accentGlow : "transparent",
               color: tab === n.id ? C.accent : C.textDim,
-              fontFamily: F.body, fontSize: 10, fontWeight: tab === n.id ? 600 : 400,
+              fontFamily: F.body, fontSize: 10, fontWeight: 700,
               justifyContent: collapsed ? "center" : "flex-start",
               borderLeft: tab === n.id ? `2px solid ${C.accent}` : "2px solid transparent",
             }}>
