@@ -934,7 +934,8 @@ export default function ABM() {
              { name: "ad_value", label: "Media value", type: "number", required: true },
              { name: "months", label: "Months", type: "number", required: true, defaultValue: "12" },
            ], (v) => addROIScenario.mutateAsync({ ...v, roi: calcROI(v.retainer, v.ad_value, v.months).roi }))} />
-           <div style={{ ...cardSx, borderRadius: 12, padding: 20 }}>
+           {roiScenarios.length > 0 && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14 }}><div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Scenarios</div>{roiScenarios.map((scenario: any) => <div key={scenario.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: C.textDim, padding: "4px 0" }}><span style={{ color: C.white }}>{scenario.name}</span><span>{scenario.client || "No client"} · {scenario.roi ?? "—"}% ROI</span></div>)}</div>}
+           <div style={{ ...cardSx, borderRadius: 12, padding: 20 }}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
               <div><label style={{ fontSize: 10, color: C.textMuted, display: "block", marginBottom: 4 }}>Monthly Retainer ($)</label><Input value={roiRetainer} onChange={setRoiRetainer} type="number" /></div>
               <div><label style={{ fontSize: 10, color: C.textMuted, display: "block", marginBottom: 4 }}>Total Ad Equivalency ($)</label><Input value={roiAdValue} onChange={setRoiAdValue} type="number" /></div>
@@ -963,6 +964,7 @@ export default function ABM() {
                <I name="sparkle" size={12} /> {meetingLoading ? "Parsing..." : "Extract Action Items"}
              </Btn>
           </div>
+          {storedMeetingNotes.length > 0 && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginTop: 14 }}><div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Meeting Notes</div>{storedMeetingNotes.map((note: any) => <div key={note.id} style={{ padding: "7px 0", borderBottom: `1px solid ${C.border}` }}><div style={{ fontSize: 11, color: C.white }}>{note.title}</div><div style={{ fontSize: 9, color: C.textMuted }}>{note.client || "No client"} · {note.meeting_date || "No date"}</div><div style={{ fontSize: 10, color: C.textDim, marginTop: 3, whiteSpace: "pre-wrap" }}>{note.notes}</div></div>)}</div>}
           {meetingActions && <div style={{ marginTop: 14 }}>
             <h3 style={{ fontSize: 12, fontWeight: 600, color: C.accent, marginBottom: 10 }}>Extracted Actions ({meetingActions.length})</h3>
             {meetingActions.map((a: any, i: number) => (
@@ -985,6 +987,7 @@ export default function ABM() {
              { name: "urgency", label: "Urgency", type: "select", options: ["high", "medium", "low"], required: true },
              { name: "note_date", label: "Date", type: "date" },
            ], (v) => addCompetitorNote.mutateAsync(v))} />
+          {competitorNotes.length > 0 && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14 }}><div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Intelligence</div>{competitorNotes.map((note: any) => <div key={note.id} style={{ padding: "7px 0", borderBottom: `1px solid ${C.border}` }}><div style={{ fontSize: 11, color: C.white }}>{note.competitor} <Badge text={note.urgency} color={note.urgency === "high" ? C.hot : C.orange} /></div><div style={{ fontSize: 9, color: C.textMuted }}>{note.source || "Internal note"} · {note.note_date || "No date"}</div><div style={{ fontSize: 10, color: C.textDim, marginTop: 3 }}>{note.note}</div></div>)}</div>}
           <TA value={competitorQ} onChange={setCompetitorQ} placeholder="What's your competitor doing?..." rows={3} />
           <div style={{ marginTop: 10 }}>
              <Btn primary onClick={async () => { setCompetitorLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'competitor-intel', query: competitorQ } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setCompetitorResult(data.opportunities || []); } } catch (e: any) { toast.error(e.message || 'Analysis failed'); } finally { setCompetitorLoading(false); } }} disabled={competitorLoading || !competitorQ}>
@@ -1013,6 +1016,7 @@ export default function ABM() {
                <I name="sparkle" size={12} /> {bpLoading ? "..." : "Generate"}
              </Btn>
           </div>
+          {storedBoilerplates.map((b: any) => <div key={b.id} style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 8 }}><div style={{ fontSize: 12, fontWeight: 600, color: C.accent }}>{b.client}</div><div style={{ fontSize: 11, color: C.textDim, lineHeight: 1.6, marginTop: 6 }}>{b.body}</div></div>)}
           {boilerplates.map((b) => (
             <div key={b.id} style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
@@ -1101,7 +1105,8 @@ export default function ABM() {
            {historyTab === "report" && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
              <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Reports</div>
              {storedReports.length > 0 && <div style={{ marginBottom: 8, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}><div style={{ fontSize: 10, color: C.textDim, marginBottom: 4 }}>Portal reports</div>{storedReports.map((r: any) => <div key={r.id} style={{ fontSize: 10, color: C.white, padding: "3px 0" }}>{r.title} <span style={{ color: C.textMuted }}>· {r.period || "No period"}</span></div>)}</div>}
-            {aiHistory.filter(h => h.type === "report").length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>}
+             {storedReports.length > 0 && <div style={{ marginBottom: 8, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}><div style={{ fontSize: 10, color: C.textDim, marginBottom: 4 }}>Portal reports</div>{storedReports.map((r: any) => <div key={r.id} style={{ fontSize: 10, color: C.white, padding: "3px 0" }}>{r.title} <span style={{ color: C.textMuted }}>· {r.period || "No period"}</span></div>)}</div>}
+             {aiHistory.filter(h => h.type === "report").length === 0 && storedReports.length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>
             {aiHistory.filter(h => h.type === "report").map(h => (
               <div key={h.id} style={{ borderBottom: `1px solid ${C.border}`, padding: "8px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div><div style={{ fontSize: 11, fontWeight: 500, color: C.white }}>{h.title}</div><div style={{ fontSize: 9, color: C.textMuted }}>{new Date(h.created_at).toLocaleDateString()}</div></div>
