@@ -16,17 +16,18 @@ export interface MCPConnection {
 
 const LS_KEY = "abm.mcp.connections";
 
-const readLocal = (): MCPConnection[] => {
+const storageKey = (userId?: string) => `${LS_KEY}.${userId ?? "guest"}`;
+const readLocal = (userId?: string): MCPConnection[] => {
   try {
-    const raw = localStorage.getItem(LS_KEY);
+    const raw = localStorage.getItem(storageKey(userId));
     return raw ? (JSON.parse(raw) as MCPConnection[]) : [];
   } catch {
     return [];
   }
 };
-const writeLocal = (rows: MCPConnection[]) => {
+const writeLocal = (userId: string | undefined, rows: MCPConnection[]) => {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify(rows));
+    localStorage.setItem(storageKey(userId), JSON.stringify(rows));
   } catch {}
 };
 
