@@ -125,12 +125,48 @@ export type Database = {
         }
         Relationships: []
       }
+      deck_templates: {
+        Row: {
+          created_at: string
+          fonts: Json
+          id: string
+          layout_definitions: Json
+          name: string
+          source_filename: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fonts?: Json
+          id?: string
+          layout_definitions?: Json
+          name: string
+          source_filename?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fonts?: Json
+          id?: string
+          layout_definitions?: Json
+          name?: string
+          source_filename?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       decks: {
         Row: {
           business_name: string | null
           created_at: string
+          document_version: number
+          generation_config: Json
           id: string
           slides: Json | null
+          source_files: Json
           theme: string | null
           title: string
           tone: string | null
@@ -141,8 +177,11 @@ export type Database = {
         Insert: {
           business_name?: string | null
           created_at?: string
+          document_version?: number
+          generation_config?: Json
           id?: string
           slides?: Json | null
+          source_files?: Json
           theme?: string | null
           title: string
           tone?: string | null
@@ -153,8 +192,11 @@ export type Database = {
         Update: {
           business_name?: string | null
           created_at?: string
+          document_version?: number
+          generation_config?: Json
           id?: string
           slides?: Json | null
+          source_files?: Json
           theme?: string | null
           title?: string
           tone?: string | null
