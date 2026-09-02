@@ -1036,12 +1036,20 @@ export default function ABM() {
           </div>
         </div>}
 
-        {/* ═══ REPORT BUILDER ═══ */}
-        {tab === "reports" && <div style={{ padding: 24, maxWidth: 900 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Report Builder</h1>
-            <Btn small onClick={() => setHistoryTab(historyTab === "report" ? null : "report")}><I name="notes" size={12} /> History ({aiHistory.filter(h => h.type === "report").length})</Btn>
-          </div>
+         {/* ═══ REPORT BUILDER ═══ */}
+         {tab === "reports" && <div style={{ padding: 24, maxWidth: 900 }}>
+           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+             <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Report Builder</h1>
+             <div style={{ display: "flex", gap: 6 }}>
+               <Btn small onClick={() => setHistoryTab(historyTab === "report" ? null : "report")}><I name="notes" size={12} /> History ({aiHistory.filter(h => h.type === "report").length})</Btn>
+               <Btn small primary onClick={() => openAdd("Save report", [
+                 { name: "title", label: "Report title", required: true, maxLength: 160 },
+                 { name: "client", label: "Client", maxLength: 160 },
+                 { name: "period", label: "Period", maxLength: 80 },
+                 { name: "body", label: "Summary", type: "textarea", required: true, maxLength: 10000 },
+               ], (v) => addReport.mutateAsync(v))}>+ Add Report</Btn>
+             </div>
+           </div>
           {historyTab === "report" && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Reports</div>
             {aiHistory.filter(h => h.type === "report").length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>}
@@ -1078,10 +1086,18 @@ export default function ABM() {
 
 
 
-        {/* ═══ MEDIA MONITOR ═══ */}
-        {tab === "monitor" && <div style={{ padding: 24, maxWidth: 1200 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Media Monitor</h1>
-          <div style={{ ...cardSx, borderRadius: 10, padding: 16 }}>
+         {/* ═══ MEDIA MONITOR ═══ */}
+         {tab === "monitor" && <div style={{ padding: 24, maxWidth: 1200 }}>
+           <SectionHeader title="Media Monitor" onAdd={() => openAdd("Add media mention", [
+             { name: "outlet", label: "Outlet", required: true, maxLength: 120 },
+             { name: "title", label: "Headline", required: true, maxLength: 240 },
+             { name: "url", label: "Article URL", type: "url", maxLength: 500 },
+             { name: "date", label: "Date", type: "date" },
+             { name: "sentiment", label: "Sentiment", type: "select", options: ["positive", "neutral", "negative"], required: true },
+             { name: "reach", label: "Reach", maxLength: 40 },
+             { name: "client", label: "Client", maxLength: 120 },
+           ], (v) => addCoverage.mutateAsync(v as any))} />
+           <div style={{ ...cardSx, borderRadius: 10, padding: 16 }}>
             {dbCoverage.map((c, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < dbCoverage.length - 1 ? `1px solid ${C.border}` : "none" }}>
                 <div style={{ flex: 1 }}><div style={{ fontSize: 11, fontWeight: 500, color: C.white }}>{c.title}</div><div style={{ fontSize: 9, color: C.textDim }}>{c.outlet} · {c.client} · {c.reach}</div></div>
@@ -1091,12 +1107,22 @@ export default function ABM() {
           </div>
         </div>}
 
-        {/* ═══ CLIENT PORTAL ═══ */}
-        {tab === "portal" && <div style={{ padding: 24, maxWidth: 1100 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Client Portal</h1>
-            <Select value={portalClient} onChange={setPortalClient} options={[...new Set(dbCoverage.map((c) => c.client))].map((c) => ({ value: c, label: c }))} />
-          </div>
+         {/* ═══ CLIENT PORTAL ═══ */}
+         {tab === "portal" && <div style={{ padding: 24, maxWidth: 1100 }}>
+           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+             <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Client Portal</h1>
+             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+               <Btn small primary onClick={() => openAdd("Add client", [
+                 { name: "name", label: "Client name", required: true, maxLength: 160 },
+                 { name: "industry", label: "Industry", maxLength: 120 },
+                 { name: "website", label: "Website", type: "url", maxLength: 500 },
+                 { name: "contact_email", label: "Contact email", type: "email", maxLength: 255 },
+                 { name: "status", label: "Status", type: "select", options: ["active", "paused", "prospect"], required: true },
+                 { name: "notes", label: "Notes", type: "textarea", maxLength: 2000 },
+               ], (v) => addClient.mutateAsync(v))}>+ Add Client</Btn>
+               <Select value={portalClient} onChange={setPortalClient} options={[...new Set([...dbCoverage.map((c) => c.client), ...clients.map((c: any) => c.name)].filter(Boolean))].map((c) => ({ value: c, label: c }))} />
+             </div>
+           </div>
           <div style={{ background: C.accentGlow, border: `1px solid ${C.accent}30`, borderRadius: 12, padding: 18, marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div><div style={{ fontSize: 15, fontFamily: F.display, fontWeight: 700, color: C.white }}>{portalClient}</div><div style={{ fontSize: 10, color: C.textDim }}>Managed by ABM PR</div></div>
             <div style={{ display: "flex", gap: 12 }}>
