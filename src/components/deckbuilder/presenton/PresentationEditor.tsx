@@ -95,6 +95,7 @@ export default function PresentationEditor({ deck, onBack }: { deck: Deck; onBac
   };
 
   const cur = slides[idx] || slides[0];
+  const selectedElement = cur.elements?.find((el) => el.id === selectedElementId);
 
   const btn = (primary?: boolean): React.CSSProperties => ({
     background: primary ? P.primary : "#fff",
@@ -185,7 +186,7 @@ export default function PresentationEditor({ deck, onBack }: { deck: Deck; onBac
             <SlideCanvas slide={cur} templateId={template} width={860} editable index={idx} total={slides.length} onChange={(p) => patch(idx, p)} onElementSelect={setSelectedElementId} selectedElementId={selectedElementId} />
           </div>
 
-          {selectedElementId && cur.elements?.some((el) => el.id === selectedElementId) && <ElementInspector element={cur.elements.find((el) => el.id === selectedElementId)!} onChange={(next) => patch(idx, { elements: cur.elements!.map((el) => el.id === selectedElementId ? { ...el, ...next } : el) })} onDelete={() => { patch(idx, { elements: cur.elements!.filter((el) => el.id !== selectedElementId) }); setSelectedElementId(null); }} />}
+          {selectedElement && <ElementInspector element={selectedElement} onChange={(next) => patch(idx, { elements: (cur.elements || []).map((el) => el.id === selectedElementId ? { ...el, ...next } : el) })} onDelete={() => { patch(idx, { elements: (cur.elements || []).filter((el) => el.id !== selectedElementId) }); setSelectedElementId(null); }} />}
 
           <div style={{ width: 860, background: "#fff", border: `1px solid ${P.border}`, borderRadius: 14, padding: 14 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: P.textDim, marginBottom: 6 }}>BULLETS (one per line)</div>
