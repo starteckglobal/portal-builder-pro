@@ -12,8 +12,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Outfit", "sans-serif"],
-        body: ["DM Sans", "sans-serif"],
+        display: ["Satoshi", "sans-serif"],
+        body: ["Satoshi", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
       colors: {
