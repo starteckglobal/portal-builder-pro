@@ -306,6 +306,8 @@ export default function ABM() {
   const [tab, setTab] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [leadFilter, setLeadFilter] = useState("all");
+  const [crmMono, setCrmMono] = useState(false);
+
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [chatCh, setChatCh] = useState("general");
   const [chatInput, setChatInput] = useState("");
