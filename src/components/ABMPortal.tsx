@@ -885,10 +885,16 @@ export default function ABM() {
           </div>
         </div>}
 
-        {/* ═══ ROI CALCULATOR ═══ */}
-        {tab === "roi" && <div style={{ padding: 24, maxWidth: 800 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>ROI Calculator</h1>
-          <div style={{ ...cardSx, borderRadius: 12, padding: 20 }}>
+         {/* ═══ ROI CALCULATOR ═══ */}
+         {tab === "roi" && <div style={{ padding: 24, maxWidth: 800 }}>
+           <SectionHeader title="ROI Calculator" onAdd={() => openAdd("Save ROI scenario", [
+             { name: "name", label: "Scenario name", required: true, maxLength: 120 },
+             { name: "client", label: "Client", maxLength: 120 },
+             { name: "retainer", label: "Monthly retainer", type: "number", required: true },
+             { name: "ad_value", label: "Media value", type: "number", required: true },
+             { name: "months", label: "Months", type: "number", required: true, defaultValue: "12" },
+           ], (v) => addROIScenario.mutateAsync({ ...v, roi: calcROI(v.retainer, v.ad_value, v.months).roi }))} />
+           <div style={{ ...cardSx, borderRadius: 12, padding: 20 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
               <div><label style={{ fontSize: 10, color: C.textMuted, display: "block", marginBottom: 4 }}>Monthly Retainer ($)</label><Input value={roiRetainer} onChange={setRoiRetainer} type="number" /></div>
               <div><label style={{ fontSize: 10, color: C.textMuted, display: "block", marginBottom: 4 }}>Total Ad Equivalency ($)</label><Input value={roiAdValue} onChange={setRoiAdValue} type="number" /></div>
@@ -902,10 +908,15 @@ export default function ABM() {
           </div>
         </div>}
 
-        {/* ═══ MEETING PARSER ═══ */}
-        {tab === "meeting" && <div style={{ padding: 24, maxWidth: 900 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 4px", color: C.white }}>Meeting Notes → Action Items</h1>
-          <p style={{ color: C.textDim, margin: "0 0 14px", fontSize: 11 }}>Paste meeting notes, AI extracts tasks with assignees and deadlines</p>
+         {/* ═══ MEETING PARSER ═══ */}
+         {tab === "meeting" && <div style={{ padding: 24, maxWidth: 900 }}>
+           <SectionHeader title="Meeting Notes → Action Items" subtitle="Paste meeting notes, AI extracts tasks with assignees and deadlines" onAdd={() => openAdd("Save meeting notes", [
+             { name: "title", label: "Meeting title", required: true, maxLength: 160 },
+             { name: "meeting_date", label: "Date", type: "date" },
+             { name: "attendees", label: "Attendees", maxLength: 500 },
+             { name: "notes", label: "Notes", type: "textarea", required: true, maxLength: 5000 },
+             { name: "client", label: "Client", maxLength: 120 },
+           ], (v) => addMeetingNote.mutateAsync(v))} />
           <TA value={meetingNotes} onChange={setMeetingNotes} placeholder="Paste meeting notes here..." rows={5} />
           <div style={{ marginTop: 10 }}>
              <Btn primary onClick={async () => { setMeetingLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'meeting-actions', notes: meetingNotes } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setMeetingActions(data.actions || []); } } catch (e: any) { toast.error(e.message || 'Parsing failed'); } finally { setMeetingLoading(false); } }} disabled={meetingLoading || !meetingNotes}>
@@ -925,10 +936,15 @@ export default function ABM() {
           </div>}
         </div>}
 
-        {/* ═══ COMPETITOR INTEL ═══ */}
-        {tab === "competitor" && <div style={{ padding: 24, maxWidth: 900 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 4px", color: C.white }}>Competitor Intelligence</h1>
-          <p style={{ color: C.textDim, margin: "0 0 14px", fontSize: 11 }}>Describe competitor activity → AI finds PR opportunities</p>
+         {/* ═══ COMPETITOR INTEL ═══ */}
+         {tab === "competitor" && <div style={{ padding: 24, maxWidth: 900 }}>
+           <SectionHeader title="Competitor Intelligence" subtitle="Describe competitor activity → AI finds PR opportunities" onAdd={() => openAdd("Add competitor note", [
+             { name: "competitor", label: "Competitor", required: true, maxLength: 160 },
+             { name: "source", label: "Source / outlet", maxLength: 200 },
+             { name: "note", label: "Observation", type: "textarea", required: true, maxLength: 2000 },
+             { name: "urgency", label: "Urgency", type: "select", options: ["high", "medium", "low"], required: true },
+             { name: "note_date", label: "Date", type: "date" },
+           ], (v) => addCompetitorNote.mutateAsync(v))} />
           <TA value={competitorQ} onChange={setCompetitorQ} placeholder="What's your competitor doing?..." rows={3} />
           <div style={{ marginTop: 10 }}>
              <Btn primary onClick={async () => { setCompetitorLoading(true); try { const { data, error } = await supabase.functions.invoke('ai-generate', { body: { type: 'competitor-intel', query: competitorQ } }); if (error) throw error; if (data?.error) { toast.error(data.error); } else { setCompetitorResult(data.opportunities || []); } } catch (e: any) { toast.error(e.message || 'Analysis failed'); } finally { setCompetitorLoading(false); } }} disabled={competitorLoading || !competitorQ}>
@@ -945,10 +961,13 @@ export default function ABM() {
           </div>}
         </div>}
 
-        {/* ═══ BOILERPLATES ═══ */}
-        {tab === "boilerplate" && <div style={{ padding: 24, maxWidth: 900 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Boilerplate Manager</h1>
-          <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+         {/* ═══ BOILERPLATES ═══ */}
+         {tab === "boilerplate" && <div style={{ padding: 24, maxWidth: 900 }}>
+           <SectionHeader title="Boilerplate Manager" onAdd={() => openAdd("Add boilerplate", [
+             { name: "client", label: "Client", required: true, maxLength: 160 },
+             { name: "body", label: "Boilerplate text", type: "textarea", required: true, maxLength: 5000 },
+           ], (v) => addBoilerplate.mutateAsync(v))} />
+           <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
             <Input value={bpClient} onChange={setBpClient} placeholder="Client name to generate boilerplate..." style={{ flex: 1 }} />
              <Btn primary onClick={async () => { setBpLoading(true); const clientName = bpClient; let acc = ""; setBoilerplates((p) => [...p, { id: Date.now(), client: clientName, text: "", generated: true }]); setBpClient(""); await streamAI({ type: 'boilerplate', client: clientName }, (d) => { acc += d; setBoilerplates((p) => p.map((b) => b.client === clientName && b.text.length <= acc.length ? { ...b, text: acc } : b)); }, () => setBpLoading(false), (e) => { toast.error(e); setBpLoading(false); }); }} disabled={bpLoading || !bpClient}>
                <I name="sparkle" size={12} /> {bpLoading ? "..." : "Generate"}
@@ -968,9 +987,16 @@ export default function ABM() {
           ))}
         </div>}
 
-        {/* ═══ CLIENT ONBOARD ═══ */}
-        {tab === "onboard" && <div style={{ padding: 24, maxWidth: 800 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Client Onboarding Wizard</h1>
+         {/* ═══ CLIENT ONBOARD ═══ */}
+         {tab === "onboard" && <div style={{ padding: 24, maxWidth: 800 }}>
+           <SectionHeader title="Client Onboarding Wizard" onAdd={() => openAdd("Add client", [
+             { name: "name", label: "Client name", required: true, maxLength: 160 },
+             { name: "industry", label: "Industry", maxLength: 120 },
+             { name: "website", label: "Website", type: "url", maxLength: 500 },
+             { name: "contact_email", label: "Contact email", type: "email", maxLength: 255 },
+             { name: "status", label: "Status", type: "select", options: ["active", "paused", "prospect"], required: true },
+             { name: "notes", label: "Notes", type: "textarea", maxLength: 2000 },
+           ], (v) => addClient.mutateAsync(v))} />
           <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
             {["Company Info", "Campaign Goals", "Brand Assets", "Complete"].map((s, i) => (
               <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= onboardStep ? C.accent : C.border }} />
