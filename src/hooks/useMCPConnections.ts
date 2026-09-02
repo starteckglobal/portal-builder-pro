@@ -49,7 +49,7 @@ export function useMCPConnections() {
       .order("created_at", { ascending: false });
     if (error) {
       setLocalOnly(true);
-      setConnections(readLocal());
+      setConnections(readLocal(user?.id));
     } else {
       setLocalOnly(false);
       setConnections((data ?? []) as MCPConnection[]);
@@ -101,8 +101,8 @@ export function useMCPConnections() {
         }
         setLocalOnly(true);
       }
-      const next = [row, ...readLocal().filter((c) => c.toolkit_slug !== row.toolkit_slug)];
-      writeLocal(next);
+      const next = [row, ...readLocal(user?.id).filter((c) => c.toolkit_slug !== row.toolkit_slug)];
+      writeLocal(user?.id, next);
       setConnections(next);
       return { ok: true as const };
     },
@@ -123,8 +123,8 @@ export function useMCPConnections() {
         }
         setLocalOnly(true);
       }
-      const next = readLocal().filter((c) => c.toolkit_slug !== slug);
-      writeLocal(next);
+      const next = readLocal(user?.id).filter((c) => c.toolkit_slug !== slug);
+      writeLocal(user?.id, next);
       setConnections(next);
     },
     [load, localOnly, user],
