@@ -155,8 +155,9 @@ export const useMeetingPresence = () => {
         .select("*")
         .eq("room_name", room)
         .eq("status", "live")
-        .maybeSingle();
-      let meeting = existing as unknown as LiveMeeting | null;
+        .order("started_at", { ascending: false })
+        .limit(1);
+      let meeting = ((existing ?? []) as unknown as LiveMeeting[])[0] ?? null;
       if (!meeting) {
         meeting = await start.mutateAsync({ room, title: title || "Live meeting" });
         return meeting;
