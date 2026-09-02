@@ -8,6 +8,7 @@ import { seedDataForUser } from "@/lib/seedData";
 import PresentonApp from "@/components/deckbuilder/presenton/PresentonApp";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 // ─── STREAMING HELPER ───────────────────────────────────────
 const streamAI = async (
@@ -274,6 +275,7 @@ const DECK_TPLS = [
 
 // ─── MAIN APP ───────────────────────────────────────────────
 export default function ABM() {
+  const navigate = useNavigate();
   const { signOut, user } = useAuth();
   
   // ─── DATABASE HOOKS ─────────────────────────────────────
@@ -427,7 +429,7 @@ export default function ABM() {
         </div>
         <nav style={{ flex: 1, padding: "4px 4px", overflowY: "auto" }}>
           {NAV.map((n) => (
-            <button key={n.id} onClick={() => setTab(n.id)} className="abm-nav-item" style={{
+            <button key={n.id} onClick={() => n.id === "deckbuilder" ? navigate("/deck-builder") : setTab(n.id)} className="abm-nav-item" style={{
               width: "100%", display: "flex", alignItems: "center", gap: 7,
               padding: collapsed ? "7px" : "6px 9px", marginBottom: 0, borderRadius: 6,
               border: "none", cursor: "pointer",

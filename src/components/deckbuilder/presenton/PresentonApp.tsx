@@ -7,10 +7,13 @@ import SlideCanvas from "./SlideCanvas";
 import CreateStep, { type CreateConfig } from "./CreateStep";
 import OutlineStep from "./OutlineStep";
 import PresentationEditor from "./PresentationEditor";
+import TemplateGallery from "./TemplateGallery";
+import { useNavigate } from "react-router-dom";
 
 type Step = "dashboard" | "create" | "outline" | "editor";
 
 export default function PresentonApp() {
+  const navigate = useNavigate();
   const { data: decks = [], isLoading } = useDecks();
   const createDeck = useCreateDeck();
   const deleteDeck = useDeleteDeck();
@@ -20,6 +23,7 @@ export default function PresentonApp() {
   const [template, setTemplate] = useState("general");
   const [loading, setLoading] = useState(false);
   const [openDeck, setOpenDeck] = useState<Deck | null>(null);
+  const [dashboardView, setDashboardView] = useState<"presentations" | "templates">("presentations");
 
   const call = async (body: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke("generate-deck", { body });
@@ -32,9 +36,15 @@ export default function PresentonApp() {
     setConfig(c);
     setLoading(true);
     try {
-      const data = await call({ mode: "outline", topic: c.topic, businessName: c.businessName, tone: c.tone.toLowerCase(), language: c.language, slideCount: c.slideCount });
+      const data = await call({ mode: "outline", topic: c.topic, businessName: c.businessName, tone: c.tone.toLowerCase(), language: c.language, slideCount: c.autoSlides ? 8 : c.slideCount, verbosity: c.verbosity, instructions: c.instructions, includeTitleSlide: c.includeTitleSlide, includeTableOfContents: c.includeTableOfContents, webSearch: c.webSearch, sourceFile: c.sourceFile });
       setOutline(data.outline || []);
-      setStep("outline");
+      if (c.generationMode === "smart") {
+        const generated = await call({ mode: "slides", topic: c.topic, businessName: c.businessName, tone: c.tone.toLowerCase(), language: c.language, slideCount: c.autoSlides ? 8 : c.slideCount, outline: data.outline || [], verbosity: c.verbosity, instructions: c.instructions, includeTitleSlide: c.includeTitleSlide, includeTableOfContents: c.includeTableOfContents });
+        const slides: Slide[] = generated.slides || [];
+        const deck = await createDeck.mutateAsync({ title: c.title, business_name: c.businessName, topic: c.topic, tone: c.tone.toLowerCase(), slides, theme: template });
+        setOpenDeck({ ...(deck as unknown as Deck), slides });
+        setStep("editor");
+      } else setStep("outline");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to draft outline");
     }
@@ -45,7 +55,7 @@ export default function PresentonApp() {
     if (!config) return;
     setLoading(true);
     try {
-      const data = await call({ mode: "slides", topic: config.topic, businessName: config.businessName, tone: config.tone.toLowerCase(), language: config.language, slideCount: outline.length, outline });
+      const data = await call({ mode: "slides", topic: config.topic, businessName: config.businessName, tone: config.tone.toLowerCase(), language: config.language, slideCount: outline.length, outline, verbosity: config.verbosity, instructions: config.instructions, includeTitleSlide: config.includeTitleSlide, includeTableOfContents: config.includeTableOfContents });
       const slides: Slide[] = data.slides || [];
       const deck = await createDeck.mutateAsync({ title: config.title, business_name: config.businessName, topic: config.topic, tone: config.tone.toLowerCase(), slides, theme: template });
       setOpenDeck({ ...(deck as unknown as Deck), slides });
@@ -80,13 +90,17 @@ export default function PresentonApp() {
     <div style={{ maxWidth: 1180, margin: "0 auto", padding: "32px 24px 60px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, margin: 0, letterSpacing: "-0.02em" }}>Presentations</h1>
-          <p style={{ fontSize: 13, color: P.textDim, marginTop: 6 }}>Generate, edit, present and export AI decks.</p>
+          <button onClick={() => navigate("/")} style={{ border: "none", background: "none", color: P.textMuted, padding: 0, marginBottom: 12, cursor: "pointer", fontFamily: P.font }}>← ABM PR Portal</button>
+          <h1 style={{ fontSize: 26, fontWeight: 800, margin: 0, letterSpacing: "-0.02em" }}>{dashboardView === "presentations" ? "Presentations" : "Templates"}</h1>
         </div>
         <button onClick={() => setStep("create")} style={{ background: P.primary, border: "none", borderRadius: 11, color: "#fff", padding: "11px 20px", fontSize: 13.5, fontWeight: 700, cursor: "pointer", fontFamily: P.font }}>+ New presentation</button>
       </div>
 
-      {isLoading ? (
+      <div style={{ display: "flex", gap: 22, borderBottom: `1px solid ${P.border}`, marginBottom: 22 }}>
+        {(["presentations", "templates"] as const).map((view) => <button key={view} onClick={() => setDashboardView(view)} style={{ border: "none", borderBottom: `2px solid ${dashboardView === view ? P.primary : "transparent"}`, background: "none", color: dashboardView === view ? P.text : P.textMuted, padding: "0 0 10px", fontFamily: P.font, fontWeight: 700, textTransform: "capitalize", cursor: "pointer" }}>{view}</button>)}
+      </div>
+
+      {dashboardView === "templates" ? <div><TemplateGallery value={template} onChange={setTemplate} /><div style={{ marginTop: 18, border: `1px dashed ${P.borderStrong}`, padding: 22, borderRadius: 12 }}><div style={{ fontWeight: 750 }}>Create a custom template</div><div style={{ color: P.textDim, fontSize: 12, marginTop: 5 }}>Upload a PPTX to review its slides, map fonts, and save reusable layouts.</div><button onClick={() => toast.info("Custom template processing is available after the database update applies")} style={{ marginTop: 12, background: P.panel, border: `1px solid ${P.border}`, borderRadius: 8, padding: "8px 13px", color: P.text, fontFamily: P.font, cursor: "pointer" }}>Upload PPTX</button></div></div> : isLoading ? (
         <div style={{ color: P.textDim, textAlign: "center", padding: 60, fontSize: 14 }}>Loading…</div>
       ) : decks.length === 0 ? (
         <div style={{ background: P.panel, border: `1px dashed ${P.borderStrong}`, borderRadius: 18, padding: 70, textAlign: "center" }}>

@@ -2,6 +2,23 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+export type SlideElementType = "text" | "chart" | "table" | "image" | "shape" | "infographic";
+
+export interface SlideElement {
+  id: string;
+  type: SlideElementType;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  text?: string;
+  variant?: string;
+  color?: string;
+  data?: Array<Record<string, string | number>>;
+  rows?: string[][];
+  src?: string;
+}
+
 export interface Slide {
   id: string;
   title: string;
@@ -9,6 +26,8 @@ export interface Slide {
   bullets: string[];
   layout: "title" | "bullets" | "two-column" | "image-text" | "stats" | "quote" | "closing";
   notes: string;
+  layoutId?: string;
+  elements?: SlideElement[];
 }
 
 export interface OutlineItem {
@@ -52,7 +71,7 @@ export function useCreateDeck() {
     mutationFn: async (deck: { title: string; business_name?: string; topic?: string; tone?: string; slides?: Slide[]; theme?: string }) => {
       const { data, error } = await supabase
         .from("decks")
-        .insert({ ...deck, user_id: user!.id, slides: (deck.slides || []) as any })
+        .insert({ ...deck, user_id: user?.id, slides: (deck.slides || []) as any })
         .select()
         .single();
       if (error) throw error;

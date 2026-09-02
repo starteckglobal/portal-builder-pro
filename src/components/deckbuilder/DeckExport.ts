@@ -62,6 +62,17 @@ export async function exportPPTX(slides: Slide[], title: string, templateId: str
       bullets(s.bullets, 0.6, s.subtitle ? 1.9 : 1.5, 8.8, 15);
     }
     if (s.notes) sl.addNotes(s.notes);
+    s.elements?.forEach((el) => {
+      const x = el.x / 128, y = el.y / 96, w = el.width / 128, h = el.height / 96;
+      if (el.type === "text") sl.addText(el.text || "Text", { x, y, w, h, fontSize: el.variant === "heading" ? 24 : 14, bold: el.variant === "heading", color: hex(el.color || t.text) });
+      if (el.type === "shape") sl.addShape(el.variant === "circle" ? pptx.ShapeType.ellipse : pptx.ShapeType.rect, { x, y, w, h, fill: { color: hex(el.color || t.accent) }, line: { color: hex(el.color || t.accent) } });
+      if (el.type === "image" && el.src) sl.addImage({ path: el.src, x, y, w, h });
+      if (el.type === "table") sl.addTable((el.rows || [["Category", "Value"], ["Item", "100"]]).map((row) => row.map((text) => ({ text }))), { x, y, w, h, border: { color: DIM, pt: 1 }, fill: { color: PN }, color: TX, fontSize: 11 });
+      if (el.type === "chart") {
+        const data = (el.data || [{ label: "A", value: 35 }, { label: "B", value: 70 }, { label: "C", value: 52 }]).map((d, i) => ({ name: String(d.label || i + 1), labels: [String(d.label || i + 1)], values: [Number(d.value || 0)] }));
+        sl.addChart(pptx.ChartType.bar, data, { x, y, w, h, showLegend: false, showTitle: false, chartColors: [AC, DIM] });
+      }
+    });
   });
 
   await pptx.writeFile({ fileName: `${safe(title)}.pptx` });
@@ -120,6 +131,11 @@ export async function exportPDF(slides: Slide[], title: string, templateId: stri
     }
     doc.setFont(face, "normal").setFontSize(13).setTextColor(dr, dg, db);
     doc.text(`${i + 1} / ${slides.length}`, 1200, 686);
+    s.elements?.forEach((el) => {
+      if (el.type === "text") { doc.setFont(face, el.variant === "heading" ? "bold" : "normal").setFontSize(el.variant === "heading" ? 26 : 16).setTextColor(tr, tg, tb); doc.text(doc.splitTextToSize(el.text || "Text", el.width), el.x, el.y + 22); }
+      if (el.type === "shape") { doc.setFillColor(ar, ag, ab); el.variant === "circle" ? doc.ellipse(el.x + el.width / 2, el.y + el.height / 2, el.width / 2, el.height / 2, "F") : doc.roundedRect(el.x, el.y, el.width, el.height, 8, 8, "F"); }
+      if (el.type === "table") { (el.rows || []).forEach((row, ri) => row.forEach((cell, ci) => { const cw = el.width / row.length, rh = 34; doc.rect(el.x + ci * cw, el.y + ri * rh, cw, rh); doc.setFontSize(12).text(String(cell), el.x + ci * cw + 6, el.y + ri * rh + 21); })); }
+    });
   });
 
   doc.save(`${safe(title)}.pdf`);

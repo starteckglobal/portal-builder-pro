@@ -15,45 +15,56 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const mode = body.mode === "outline" ? "outline" : "slides";
+    const mode = body.mode === "outline" ? "outline" : body.mode === "edit" ? "edit" : "slides";
     const topic = String(body.topic || "").slice(0, 5000);
     const businessName = String(body.businessName || "").slice(0, 500);
     const tone = String(body.tone || "professional").slice(0, 100);
     const language = String(body.language || "English").slice(0, 80);
     const slideCount = Math.max(5, Math.min(20, Number(body.slideCount || 8)));
     const outline = Array.isArray(body.outline) ? body.outline.slice(0, 20) : [];
+    const verbosity = String(body.verbosity || "Standard").slice(0, 40);
+    const instructions = String(body.instructions || "").slice(0, 2000);
+    const includeTitleSlide = body.includeTitleSlide !== false;
+    const includeTableOfContents = body.includeTableOfContents === true;
+    const sourceText = String(body.sourceFile?.text || "").slice(0, 30000);
+    const slide = body.slide && typeof body.slide === "object" ? body.slide : null;
+    const editInstruction = String(body.instruction || "").slice(0, 2000);
     const key = Deno.env.get("LOVABLE_API_KEY");
     if (!key) return json({ error: "AI service is not configured" }, 500);
 
+    const slideSchema = {
+      type: "object",
+      properties: {
+        id: { type: "string" }, title: { type: "string" }, subtitle: { type: "string" },
+        bullets: { type: "array", items: { type: "string" } },
+        layout: { type: "string", enum: ["title", "bullets", "two-column", "image-text", "stats", "quote", "closing"] },
+        notes: { type: "string" },
+      },
+      required: ["id", "title", "bullets", "layout", "notes"],
+    };
     const schema = mode === "outline"
       ? {
           type: "object",
           properties: { outline: { type: "array", items: { type: "object", properties: { title: { type: "string" }, description: { type: "string" } }, required: ["title", "description"] } } },
           required: ["outline"],
         }
-      : {
+      : mode === "slides" ? {
           type: "object",
           properties: {
             slides: {
               type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  id: { type: "string" }, title: { type: "string" }, subtitle: { type: "string" },
-                  bullets: { type: "array", items: { type: "string" } },
-                  layout: { type: "string", enum: ["title", "bullets", "two-column", "image-text", "stats", "quote", "closing"] },
-                  notes: { type: "string" },
-                },
-                required: ["id", "title", "bullets", "layout", "notes"],
-              },
+               items: slideSchema,
             },
           },
           required: ["slides"],
-        };
+        }
+      : { type: "object", properties: { slide: slideSchema }, required: ["slide"] };
 
     const instruction = mode === "outline"
-      ? `Create an outline of exactly ${slideCount} business presentation slides about "${topic}" for "${businessName}". Return concise slide titles and one-sentence descriptions. Use ${language}.`
-      : `Expand this approved outline into exactly ${outline.length || slideCount} polished business slides about "${topic}" for "${businessName}". Outline: ${JSON.stringify(outline)}. Use ${language}. Tone: ${tone}. Make the first slide title and the final slide closing. Keep each slide to at most 5 concise bullets. Choose layouts from the allowed enum. Never invent unsupported metrics, quotes, or citations.`;
+      ? `Create an outline of exactly ${slideCount} business presentation slides about "${topic}" for "${businessName}". ${sourceText ? `Use this source material: ${sourceText}` : ""} Return concise slide titles and one-sentence descriptions. Use ${language}. ${includeTitleSlide ? "Include a title slide." : "Do not include a title slide."} ${includeTableOfContents ? "Include a table of contents." : ""} Detail level: ${verbosity}. Additional instructions: ${instructions}`
+      : mode === "edit"
+        ? `Edit this slide according to the request while preserving its id and returning the complete updated slide. Request: ${editInstruction}. Slide: ${JSON.stringify(slide)}`
+        : `Expand this approved outline into exactly ${outline.length || slideCount} polished business slides about "${topic}" for "${businessName}". Outline: ${JSON.stringify(outline)}. Use ${language}. Tone: ${tone}. Detail level: ${verbosity}. ${includeTitleSlide ? "Make the first slide a title slide." : ""} ${includeTableOfContents ? "Include an agenda slide." : ""} Additional instructions: ${instructions}. Keep each slide to at most 5 concise bullets. Choose layouts from the allowed enum. Never invent unsupported metrics, quotes, or citations.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -64,8 +75,8 @@ serve(async (req) => {
           { role: "system", content: `You are Presenton, a presentation planning and writing assistant. Respond only through the requested structured function. Tone: ${tone}.` },
           { role: "user", content: instruction },
         ],
-        tools: [{ type: "function", function: { name: mode === "outline" ? "generate_outline" : "generate_slides", description: "Return structured presentation content", parameters: schema } }],
-        tool_choice: { type: "function", function: { name: mode === "outline" ? "generate_outline" : "generate_slides" } },
+        tools: [{ type: "function", function: { name: mode === "outline" ? "generate_outline" : mode === "edit" ? "edit_slide" : "generate_slides", description: "Return structured presentation content", parameters: schema } }],
+        tool_choice: { type: "function", function: { name: mode === "outline" ? "generate_outline" : mode === "edit" ? "edit_slide" : "generate_slides" } },
       }),
     });
 

@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import type { Deck, Slide } from "@/hooks/useDecks";
+import type { Deck, Slide, SlideElement, SlideElementType } from "@/hooks/useDecks";
 import { useUpdateDeck } from "@/hooks/useDecks";
 import { P, LAYOUTS, TEMPLATES } from "./theme";
 import SlideCanvas from "./SlideCanvas";
 import PresentMode from "./PresentMode";
 import { exportPPTX, exportPDF } from "../DeckExport";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { BarChart3, Blocks, Image, LayoutTemplate, MessageSquareShare, Redo2, Shapes, Table2, TextCursorInput, Undo2 } from "lucide-react";
+
+type EditorPanel = "ai" | "blocks" | "texts" | "charts" | "infographics" | "tables" | "images" | "elements";
 
 export default function PresentationEditor({ deck, onBack }: { deck: Deck; onBack: () => void }) {
   const [slides, setSlides] = useState<Slide[]>(deck.slides.length ? deck.slides : [{ id: "s1", title: "New slide", bullets: ["Point"], layout: "bullets", notes: "" }]);
@@ -16,13 +20,46 @@ export default function PresentationEditor({ deck, onBack }: { deck: Deck; onBac
   const [presenting, setPresenting] = useState(false);
   const [saved, setSaved] = useState(true);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [panel, setPanel] = useState<EditorPanel | null>(null);
+  const [chat, setChat] = useState("");
+  const [chatBusy, setChatBusy] = useState(false);
+  const [history, setHistory] = useState<Slide[][]>([]);
+  const [redo, setRedo] = useState<Slide[][]>([]);
   const updateDeck = useUpdateDeck();
   const ref = useRef<ReturnType<typeof setTimeout>>();
   const first = useRef(true);
 
   const patch = useCallback((i: number, p: Partial<Slide>) => {
-    setSlides((prev) => prev.map((s, j) => (j === i ? { ...s, ...p } : s)));
+    setSlides((prev) => {
+      setHistory((h) => [...h.slice(-29), prev]);
+      setRedo([]);
+      return prev.map((s, j) => (j === i ? { ...s, ...p } : s));
+    });
   }, []);
+
+  const undo = () => setHistory((h) => { const prev = h[h.length - 1]; if (!prev) return h; setRedo((r) => [slides, ...r]); setSlides(prev); return h.slice(0, -1); });
+  const redoChange = () => setRedo((r) => { const next = r[0]; if (!next) return r; setHistory((h) => [...h, slides]); setSlides(next); return r.slice(1); });
+
+  const addElement = (type: SlideElementType, variant?: string) => {
+    const defaults: Record<SlideElementType, Partial<SlideElement>> = {
+      text: { text: "Add your text", width: 430, height: 90 }, chart: { width: 430, height: 250 }, table: { width: 500, height: 220, rows: [["Category", "Value"], ["Item A", "72"], ["Item B", "48"]] },
+      image: { width: 440, height: 280 }, shape: { width: 180, height: 120 }, infographic: { width: 520, height: 180 },
+    };
+    patch(idx, { elements: [...(cur.elements || []), { id: `el-${Date.now()}`, type, variant, x: 650, y: 360, width: 300, height: 160, ...defaults[type] }] });
+  };
+
+  const askAI = async () => {
+    if (!chat.trim()) return;
+    setChatBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-deck", { body: { mode: "edit", instruction: chat, slide: cur } });
+      if (error || data?.error) throw error || new Error(data.error);
+      patch(idx, data.slide || {});
+      setChat("");
+      toast.success("Slide updated");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "AI edit failed"); }
+    setChatBusy(false);
+  };
 
   useEffect(() => {
     if (first.current) { first.current = false; return; }
@@ -76,9 +113,11 @@ export default function PresentationEditor({ deck, onBack }: { deck: Deck; onBac
 
       {/* Top bar */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", background: "#fff", borderBottom: `1px solid ${P.border}` }}>
-        <button onClick={onBack} style={btn()}>← Dashboard</button>
+        <button onClick={onBack} style={btn()}>← Presentations</button>
         <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ border: "none", outline: "none", fontSize: 15, fontWeight: 700, color: P.text, fontFamily: P.font, flex: 1, background: "transparent" }} />
         <span style={{ fontSize: 11, color: saved ? P.textMuted : P.primary }}>{saved ? "Saved" : "Saving…"}</span>
+        <button title="Undo" onClick={undo} disabled={!history.length} style={btn()}><Undo2 size={14} /></button>
+        <button title="Redo" onClick={redoChange} disabled={!redo.length} style={btn()}><Redo2 size={14} /></button>
         <select value={template} onChange={(e) => setTemplate(e.target.value)} style={{ ...btn(), padding: "7px 10px" }}>
           {TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
@@ -89,6 +128,15 @@ export default function PresentationEditor({ deck, onBack }: { deck: Deck; onBac
       </div>
 
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+        <div style={{ width: 68, background: "#fff", borderRight: `1px solid ${P.border}`, padding: "10px 6px", display: "flex", flexDirection: "column", gap: 5 }}>
+          {[
+            ["ai", MessageSquareShare, "AI"], ["blocks", Blocks, "Blocks"], ["texts", TextCursorInput, "Text"], ["charts", BarChart3, "Charts"], ["infographics", LayoutTemplate, "Info"], ["tables", Table2, "Tables"], ["images", Image, "Images"], ["elements", Shapes, "Elements"],
+          ].map(([id, Icon, label]) => <button key={String(id)} onClick={() => setPanel(panel === id ? null : id as typeof panel)} style={{ border: "none", borderRadius: 8, padding: "8px 2px", background: panel === id ? P.primarySoft : "transparent", color: panel === id ? P.primary : P.textDim, fontSize: 9.5, display: "grid", placeItems: "center", gap: 3, cursor: "pointer" }}><Icon size={17} />{String(label)}</button>)}
+        </div>
+        {panel && <div style={{ width: 260, background: "#fff", borderRight: `1px solid ${P.border}`, padding: 14, overflowY: "auto" }}>
+          <div style={{ fontWeight: 800, fontSize: 14, textTransform: "capitalize", marginBottom: 12 }}>{panel}</div>
+          {panel === "ai" ? <><textarea value={chat} onChange={(e) => setChat(e.target.value)} placeholder="Ask AI to rewrite, summarize, add data, or change this slide…" style={{ width: "100%", minHeight: 130, boxSizing: "border-box", border: `1px solid ${P.border}`, borderRadius: 9, padding: 10, fontFamily: P.font, resize: "vertical" }} /><button onClick={askAI} disabled={chatBusy} style={{ ...btn(true), width: "100%", marginTop: 8 }}>{chatBusy ? "Applying…" : "Apply to slide"}</button></> : panel === "blocks" ? <div style={{ display: "grid", gap: 7 }}>{getLayoutOptions(template).map((l) => <button key={l.id} onClick={() => patch(idx, { layoutId: l.id, layout: l.kind })} style={{ ...btn(), textAlign: "left" }}><strong>{l.id.replace(/_/g, " ")}</strong><span style={{ display: "block", fontSize: 10, marginTop: 3 }}>{l.description}</span></button>)}</div> : <InsertOptions panel={panel} add={addElement} />}
+        </div>}
         {/* Thumbnail rail */}
         <div style={{ width: 216, borderRight: `1px solid ${P.border}`, background: "#fff", overflowY: "auto", padding: 12 }}>
           {slides.map((s, i) => (
@@ -164,4 +212,16 @@ export default function PresentationEditor({ deck, onBack }: { deck: Deck; onBac
       </div>
     </div>
   );
+}
+
+const getLayoutOptions = (templateId: string) => TEMPLATES.find((t) => t.id === templateId)?.layouts || [];
+
+function InsertOptions({ panel, add }: { panel: Exclude<EditorPanel, "ai" | "blocks">; add: (type: SlideElementType, variant?: string) => void }) {
+  const options: Record<string, Array<[string, SlideElementType, string?]>> = {
+    texts: [["Heading", "text", "heading"], ["Body text", "text", "body"], ["Quote", "text", "quote"]],
+    charts: [["Bar chart", "chart", "bar"], ["Line chart", "chart", "line"], ["Pie chart", "chart", "pie"], ["Radar chart", "chart", "radar"]],
+    infographics: [["Timeline", "infographic", "timeline"], ["Process", "infographic", "process"], ["Funnel", "infographic", "funnel"], ["Roadmap", "infographic", "roadmap"]],
+    tables: [["Table", "table"]], images: [["Upload image", "image"]], elements: [["Rectangle", "shape", "rectangle"], ["Circle", "shape", "circle"], ["Arrow", "shape", "arrow"]],
+  };
+  return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>{(options[panel] || []).map(([name, type, variant]) => <button key={name} onClick={() => add(type, variant)} style={{ border: `1px solid ${P.border}`, borderRadius: 8, background: P.bg, minHeight: 72, color: P.textDim, fontFamily: P.font, cursor: "pointer", fontSize: 11 }}>{name}</button>)}</div>;
 }
