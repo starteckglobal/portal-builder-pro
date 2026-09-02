@@ -408,66 +408,24 @@ export default function ABM() {
   const unreadCount = dbNotifications.filter((n) => !n.read).length;
   const fLeads = dbLeads.filter((l) => leadFilter === "all" || l.status === leadFilter);
 
-  const NAV = [
-    { id: "dashboard", label: "Dashboard", icon: "dashboard" }, { id: "leads", label: "Leads CRM", icon: "leads" },
-    { id: "kanban", label: "Pitch Kanban", icon: "kanban" }, { id: "chat", label: "Team Chat", icon: "chat" },
-    { id: "deckbuilder", label: "Deck Builder", icon: "deck" }, { id: "pressrelease", label: "Press Release", icon: "press" },
-    { id: "pitchemail", label: "Pitch Composer", icon: "email" }, { id: "imagegen", label: "Creative AI", icon: "image" },
-    { id: "medialist", label: "Media Lists", icon: "list" }, { id: "clipper", label: "Clipper + Sentiment", icon: "clip" },
-    { id: "calendar", label: "Social Calendar", icon: "calendar" }, { id: "analytics", label: "Analytics", icon: "chart" },
-    { id: "roi", label: "ROI Calculator", icon: "calc" }, { id: "meeting", label: "Meeting Parser", icon: "notes" },
-    { id: "competitor", label: "Competitor Intel", icon: "search" }, { id: "boilerplate", label: "Boilerplates", icon: "assets" },
-    { id: "onboard", label: "Client Onboard", icon: "wizard" }, { id: "reports", label: "Report Builder", icon: "report" },
-    { id: "monitor", label: "Media Monitor", icon: "monitor" }, { id: "portal", label: "Client Portal", icon: "portal" },
-    { id: "settings", label: "Settings", icon: "settings" },
-  ];
-
   return (
-    <div style={{ fontFamily: F.body, background: C.bg, color: C.text, height: "100vh", display: "flex", overflow: "hidden" }}>
-      {/* SIDEBAR */}
-      <aside style={{ width: collapsed ? 52 : 190, background: C.surface, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", transition: "width .3s", flexShrink: 0, overflow: "hidden" }}>
-        <div style={{ padding: collapsed ? "12px 8px" : "12px 14px", borderBottom: `1px solid ${C.border}`, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, justifyContent: collapsed ? "center" : "flex-start" }} onClick={() => setCollapsed(!collapsed)}>
-          <img src={abmLogo} alt="ABM PR" style={{ width: 28, height: 28, borderRadius: 7, objectFit: "contain", flexShrink: 0 }} />
-          {!collapsed && <div><div style={{ fontSize: 13, fontWeight: 700, color: C.white, lineHeight: 1 }}>ABM PR</div><div style={{ fontSize: 7, color: C.textDim, letterSpacing: 2, textTransform: "uppercase" }}>New Orleans</div></div>}
-        </div>
-        <nav style={{ flex: 1, padding: "4px 4px", overflowY: "auto" }}>
-          {NAV.map((n) => (
-            <button key={n.id} onClick={() => n.id === "deckbuilder" ? navigate("/deck-builder") : setTab(n.id)} className="abm-nav-item" style={{
-              width: "100%", display: "flex", alignItems: "center", gap: 7,
-              padding: collapsed ? "7px" : "6px 9px", marginBottom: 0, borderRadius: 6,
-              border: "none", cursor: "pointer",
-              background: tab === n.id ? C.accentGlow : "transparent",
-              color: tab === n.id ? C.accent : C.white,
-              fontFamily: F.body, fontSize: 10, fontWeight: 700,
-              justifyContent: collapsed ? "center" : "flex-start",
-              borderLeft: tab === n.id ? `2px solid ${C.accent}` : "2px solid transparent",
-            }}>
-              <I name={n.icon} size={14} />{!collapsed && n.label}
-            </button>
-          ))}
-        </nav>
-        <div style={{ padding: collapsed ? "8px 4px" : "8px 10px", borderTop: `1px solid ${C.border}`, display: "flex", flexDirection: "column", gap: 4 }}>
-          {!collapsed && <div style={{ fontSize: 9, color: C.textMuted, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>}
-          <button onClick={() => setShowChangePw(true)} style={{
-            width: "100%", padding: "6px 8px", borderRadius: 6, border: `1px solid ${C.border}`,
-            background: "transparent", color: C.textDim, fontSize: 10, cursor: "pointer",
-            fontFamily: F.body, display: "flex", alignItems: "center", gap: 6, justifyContent: collapsed ? "center" : "flex-start",
-          }}>
-            <I name="portal" size={12} />{!collapsed && "Change Password"}
-          </button>
-          <button onClick={signOut} style={{
-            width: "100%", padding: "6px 8px", borderRadius: 6, border: `1px solid ${C.border}`,
-            background: "transparent", color: C.hot, fontSize: 10, cursor: "pointer",
-            fontFamily: F.body, display: "flex", alignItems: "center", gap: 6, justifyContent: collapsed ? "center" : "flex-start",
-          }}>
-            {collapsed ? "✕" : "Sign Out"}
-          </button>
-        </div>
-      </aside>
+    <SidebarProvider>
+      <div style={{ fontFamily: F.body, background: C.bg, color: C.text, height: "100vh", display: "flex", width: "100%", overflow: "hidden" }}>
+        <AppSidebar
+          tab={tab}
+          onSelect={(id) => (id === "deckbuilder" ? navigate("/deck-builder") : setTab(id))}
+          userEmail={user?.email}
+          onChangePassword={() => setShowChangePw(true)}
+          onSignOut={signOut}
+        />
 
       {/* MAIN */}
-      <main style={{ flex: 1, overflow: "auto", position: "relative" }}>
+      <SidebarInset style={{ flex: 1, overflow: "auto", position: "relative", background: C.bg }}>
+        <div style={{ position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: C.bg, borderBottom: `1px solid ${C.border}` }}>
+          <SidebarTrigger />
+        </div>
         <div style={{ height: 2, background: `linear-gradient(90deg,${C.accent},transparent 70%)` }} />
+
 
         {/* NOTIFICATION BELL */}
         <div style={{ position: "fixed", top: 12, right: 20, zIndex: 999 }}>
