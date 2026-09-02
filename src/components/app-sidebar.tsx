@@ -27,6 +27,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import abmLogo from "@/assets/abm-logo.png";
 import { I } from "@/components/portalIcons";
+import { useLiveMeetings } from "@/hooks/useLiveMeetings";
 
 export const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "dashboard" },
@@ -122,6 +123,8 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { data: liveMeetings = [] } = useLiveMeetings();
+  const liveCount = liveMeetings.length;
   const active = workspace ?? WORKSPACES[0].plan;
 
   return (
@@ -170,6 +173,7 @@ export function AppSidebar({
             <SidebarMenu>
               {GROUPS.map((g) => {
                 const hasActive = g.items.some((i) => i.id === tab);
+                const groupLive = liveCount > 0 && g.items.some((i) => i.id === "livemeeting");
                 return (
                   <Collapsible key={g.id} asChild defaultOpen={hasActive} className="group/collapsible">
                     <SidebarMenuItem>
@@ -181,6 +185,7 @@ export function AppSidebar({
                         >
                           <I name={g.icon} size={14} />
                           <span>{g.label}</span>
+                          {groupLive && <span className="live-dot ml-1 size-2 shrink-0 rounded-full bg-destructive" />}
                           <ChevronRight className="ml-auto size-3.5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
@@ -196,6 +201,12 @@ export function AppSidebar({
                                 <button type="button" onClick={() => onSelect(n.id)} className="w-full text-left">
                                   <I name={n.icon} size={12} />
                                   <span>{n.label}</span>
+                                  {n.id === "livemeeting" && liveCount > 0 && (
+                                    <span className="ml-auto flex items-center gap-1 text-[9px] font-bold text-destructive">
+                                      <span className="live-dot size-2 rounded-full bg-destructive" />
+                                      {liveCount} LIVE
+                                    </span>
+                                  )}
                                 </button>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
