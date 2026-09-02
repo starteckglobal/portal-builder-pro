@@ -52,7 +52,11 @@ export const NAV = [
   { id: "settings", label: "Settings", icon: "settings" },
 ];
 
-const byId = (id: string) => NAV.find((n) => n.id === id)!;
+const byId = (id: string) => {
+  const item = NAV.find((n) => n.id === id);
+  if (!item) throw new Error(`Unknown navigation item: ${id}`);
+  return item;
+};
 
 /** Grouped nav with collapsible pop-out sub-menus (shadcn sidebar pattern). */
 const GROUPS: { id: string; label: string; icon: string; items: typeof NAV }[] = [
