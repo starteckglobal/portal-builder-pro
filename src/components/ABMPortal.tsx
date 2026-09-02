@@ -4,7 +4,7 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tool
 import abmLogo from "@/assets/abm-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLeads, useContacts, useCoverage, useKanbanCards, useUpdateKanbanCard, useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, useAIOutputs, useSaveAIOutput, useDeleteAIOutput, useAddLead, useAddContact, useAddCoverage, useAddKanbanCard } from "@/hooks/usePortalData";
-import { useAddRecord, useBoilerplates, useCalendarPosts, useChatMessages, useClients, useCompetitorNotes, useMeetingNotes, useRecords, useReports, useROIScenarios } from "@/hooks/useRecords";
+import { useAddRecord, useBoilerplates, useCalendarPosts, useChatMessages, useClients, useCompetitorNotes, useMeetingNotes, useReports, useROIScenarios } from "@/hooks/useRecords";
 import { seedDataForUser } from "@/lib/seedData";
 import PresentonApp from "@/components/deckbuilder/presenton/PresentonApp";
 import MCPConnectorsPanel from "@/components/settings/MCPConnectorsPanel";
@@ -392,7 +392,14 @@ export default function ABM() {
   useEffect(() => { chatEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [chatCh, msgs]);
 
   // ─── DERIVED DATA ───────────────────────────────────────
-  const clientOptions = clients.map((client: any) => ({ value: client.id, label: client.name })).filter((client: { value?: string; label?: string }) => client.value && client.label);
+  const activeClientCount = new Set([
+    ...clients.map((client: any) => client.name),
+    ...dbCoverage.map((coverage) => coverage.client),
+    ...dbLeads.map((lead) => lead.name),
+  ].filter(Boolean)).size;
+  const placedCount = dbKanbanCards.filter((card) => card.column_name === "placed").length;
+  const pitchCount = dbKanbanCards.length;
+  const hitRate = pitchCount ? `${Math.round((placedCount / pitchCount) * 100)}%` : "0%";
   const kanban = useMemo(() => {
     const cols: Record<string, any[]> = { draft: [], sent: [], followup: [], placed: [], declined: [] };
     dbKanbanCards.forEach((card) => {
@@ -513,16 +520,22 @@ export default function ABM() {
           </div>}
         </div>
 
-        {/* ═══ DASHBOARD ═══ */}
-        {tab === "dashboard" && <div style={{ padding: 24, maxWidth: 1200 }}>
-          <h1 style={{ fontSize: 22, fontFamily: F.display, fontWeight: 700, margin: "0 0 2px", color: C.white }}>Dashboard</h1>
-          <p style={{ color: C.textDim, margin: "0 0 18px", fontSize: 12 }}>{new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 18 }}>
-            <Stat label="Active Clients" value="15" sub="+2 this month" icon="leads" color={C.accent} glow={C.accentGlow} />
-            <Stat label="Hot Leads" value={dbLeads.filter((l) => l.status === "hot").length} sub="Needs follow-up" icon="fire" color={C.hot} glow={C.hotGlow} />
-            <Stat label="Hit Rate" value="38%" sub="18/47 placed" icon="trending" color={C.accent} glow={C.accentGlow} />
-            <Stat label="Mentions" value="340" sub="March 2026" icon="monitor" color={C.blue} glow={C.blueGlow} />
-          </div>
+         {/* ═══ DASHBOARD ═══ */}
+         {tab === "dashboard" && <div style={{ padding: 24, maxWidth: 1200 }}>
+           <SectionHeader title="Dashboard" subtitle={new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })} onAdd={() => openAdd("Add client", [
+             { name: "name", label: "Client name", required: true, maxLength: 160 },
+             { name: "industry", label: "Industry", maxLength: 120 },
+             { name: "website", label: "Website", type: "url", maxLength: 500 },
+             { name: "contact_email", label: "Contact email", type: "email", maxLength: 255 },
+             { name: "status", label: "Status", type: "select", options: ["active", "paused", "prospect"], required: true },
+             { name: "notes", label: "Notes", type: "textarea", maxLength: 2000 },
+           ], (v) => addClient.mutateAsync(v))} />
+           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 18 }}>
+             <Stat label="Active Clients" value={activeClientCount} sub="From your portal data" icon="leads" color={C.accent} glow={C.accentGlow} />
+             <Stat label="Hot Leads" value={dbLeads.filter((l) => l.status === "hot").length} sub="Needs follow-up" icon="fire" color={C.hot} glow={C.hotGlow} />
+             <Stat label="Hit Rate" value={hitRate} sub={`${placedCount}/${pitchCount} placed`} icon="trending" color={C.accent} glow={C.accentGlow} />
+             <Stat label="Mentions" value={dbCoverage.length} sub="Saved coverage records" icon="monitor" color={C.blue} glow={C.blueGlow} />
+           </div>
            <HighlightPanel variant="feature" className="mb-[18px]" innerClassName="p-4">
              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
                <div>
@@ -863,9 +876,17 @@ export default function ABM() {
           </div>
         </div>}
 
-        {/* ═══ ANALYTICS ═══ */}
-        {tab === "analytics" && <div style={{ padding: 24, maxWidth: 1200 }}>
-          <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: "0 0 14px", color: C.white }}>Analytics & Insights</h1>
+         {/* ═══ ANALYTICS ═══ */}
+         {tab === "analytics" && <div style={{ padding: 24, maxWidth: 1200 }}>
+           <SectionHeader title="Analytics & Insights" onAdd={() => openAdd("Add coverage", [
+             { name: "outlet", label: "Outlet", required: true, maxLength: 120 },
+             { name: "title", label: "Headline", required: true, maxLength: 240 },
+             { name: "url", label: "Article URL", type: "url", maxLength: 500 },
+             { name: "date", label: "Date", type: "date" },
+             { name: "sentiment", label: "Sentiment", type: "select", options: ["positive", "neutral", "negative"], required: true },
+             { name: "reach", label: "Reach", maxLength: 40 },
+             { name: "client", label: "Client", maxLength: 120 },
+           ], (v) => addCoverage.mutateAsync(v as any))} />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 16 }}>
             <Stat label="Coverage (30d)" value="127" icon="monitor" color={C.accent} glow={C.accentGlow} />
             <Stat label="Media Value" value="$480K" icon="trending" color={C.accent} glow={C.accentGlow} />
