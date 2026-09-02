@@ -9,6 +9,8 @@ import OutlineStep from "./OutlineStep";
 import PresentationEditor from "./PresentationEditor";
 import TemplateGallery from "./TemplateGallery";
 import { useNavigate } from "react-router-dom";
+import { HighlightPanel } from "@/components/ui/highlight-card";
+
 
 type Step = "dashboard" | "create" | "outline" | "editor";
 
@@ -100,48 +102,48 @@ export default function PresentonApp() {
         {(["presentations", "templates"] as const).map((view) => <button key={view} onClick={() => setDashboardView(view)} style={{ border: "none", borderBottom: `2px solid ${dashboardView === view ? P.primary : "transparent"}`, background: "none", color: dashboardView === view ? P.text : P.textMuted, padding: "0 0 10px", fontFamily: P.font, fontWeight: 700, textTransform: "capitalize", cursor: "pointer" }}>{view}</button>)}
       </div>
 
-      {dashboardView === "templates" ? <div><TemplateGallery value={template} onChange={setTemplate} /><div style={{ marginTop: 18, border: `1px dashed ${P.borderStrong}`, padding: 22, borderRadius: 12 }}><div style={{ fontWeight: 750 }}>Create a custom template</div><div style={{ color: P.textDim, fontSize: 12, marginTop: 5 }}>Upload a PPTX to review its slides, map fonts, and save reusable layouts.</div><button onClick={() => toast.info("Custom template processing is available after the database update applies")} style={{ marginTop: 12, background: P.panel, border: `1px solid ${P.border}`, borderRadius: 8, padding: "8px 13px", color: P.text, fontFamily: P.font, cursor: "pointer" }}>Upload PPTX</button></div></div> : isLoading ? (
-        <div style={{ color: P.textDim, textAlign: "center", padding: 60, fontSize: 14 }}>Loading…</div>
-      ) : decks.length === 0 ? (
-        <div style={{ background: P.panel, border: `1px dashed ${P.borderStrong}`, borderRadius: 18, padding: 70, textAlign: "center" }}>
-          <div style={{ fontSize: 17, fontWeight: 700 }}>No presentations yet</div>
-          <div style={{ fontSize: 13, color: P.textDim, marginTop: 8 }}>Start from a prompt and Presenton drafts the outline and slides.</div>
-          <button onClick={() => setStep("create")} style={{ marginTop: 20, background: P.primary, border: "none", borderRadius: 11, color: "#fff", padding: "11px 22px", fontSize: 13.5, fontWeight: 700, cursor: "pointer", fontFamily: P.font }}>Create your first deck</button>
-        </div>
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 18 }}>
-          {decks.map((d) => (
-            <div key={d.id} style={{ background: P.panel, border: `1px solid ${P.border}`, borderRadius: 16, overflow: "hidden", boxShadow: P.shadow }}>
-              <div
-                onClick={() => { setOpenDeck(d); setStep("editor"); }}
-                style={{ cursor: "pointer", borderBottom: `1px solid ${P.border}`, background: "#f0f0f6", display: "flex", justifyContent: "center" }}
-              >
-                {d.slides[0] ? (
-                  <SlideCanvas slide={d.slides[0]} templateId={d.theme} width={300} />
-                ) : (
-                  <div style={{ height: 168, display: "flex", alignItems: "center", color: P.textMuted, fontSize: 12 }}>Empty deck</div>
-                )}
-              </div>
-              <div style={{ padding: 14 }}>
-                <div style={{ fontSize: 14.5, fontWeight: 700 }}>{d.title}</div>
-                <div style={{ fontSize: 11.5, color: P.textMuted, marginTop: 4 }}>
-                  {d.business_name ? `${d.business_name} · ` : ""}{d.slides.length} slides · {new Date(d.created_at).toLocaleDateString()}
-                </div>
-                <div style={{ display: "flex", gap: 6, marginTop: 12, flexWrap: "wrap" }}>
-                  <button onClick={() => { setOpenDeck(d); setStep("editor"); }} style={{ background: P.primarySoft, border: "none", borderRadius: 8, color: P.primary, padding: "6px 12px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: P.font }}>Open</button>
-                  <button onClick={() => duplicate(d)} style={{ background: "#fff", border: `1px solid ${P.border}`, borderRadius: 8, color: P.textDim, padding: "6px 12px", fontSize: 11.5, fontWeight: 600, cursor: "pointer", fontFamily: P.font }}>Duplicate</button>
-                  <button
-                    onClick={async () => { if (confirm("Delete this presentation?")) { await deleteDeck.mutateAsync(d.id); toast.success("Deleted"); } }}
-                    style={{ background: "#fff", border: `1px solid ${P.border}`, borderRadius: 8, color: P.danger, padding: "6px 12px", fontSize: 11.5, fontWeight: 600, cursor: "pointer", fontFamily: P.font }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+       {dashboardView === "templates" ? <div><TemplateGallery value={template} onChange={setTemplate} /><HighlightPanel variant="panel" className="mt-[18px]" innerClassName="p-[22px]" style={{ border: `1px dashed ${P.borderStrong}` }}><div style={{ fontWeight: 750 }}>Create a custom template</div><div style={{ color: P.textDim, fontSize: 12, marginTop: 5 }}>Upload a PPTX to review its slides, map fonts, and save reusable layouts.</div><button onClick={() => toast.info("Custom template processing is available after the database update applies")} style={{ marginTop: 12, background: P.panel, border: `1px solid ${P.border}`, borderRadius: 8, padding: "8px 13px", color: P.text, fontFamily: P.font, cursor: "pointer" }}>Upload PPTX</button></HighlightPanel></div> : isLoading ? (
+         <div style={{ color: P.textDim, textAlign: "center", padding: 60, fontSize: 14 }}>Loading…</div>
+       ) : decks.length === 0 ? (
+         <HighlightPanel variant="panel" innerClassName="p-[70px] text-center" style={{ border: `1px dashed ${P.borderStrong}` }}>
+           <div style={{ fontSize: 17, fontWeight: 700 }}>No presentations yet</div>
+           <div style={{ fontSize: 13, color: P.textDim, marginTop: 8 }}>Start from a prompt and Presenton drafts the outline and slides.</div>
+           <button onClick={() => setStep("create")} style={{ marginTop: 20, background: P.primary, border: "none", borderRadius: 11, color: "#fff", padding: "11px 22px", fontSize: 13.5, fontWeight: 700, cursor: "pointer", fontFamily: P.font }}>Create your first deck</button>
+         </HighlightPanel>
+       ) : (
+         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 18 }}>
+           {decks.map((d) => (
+             <HighlightPanel key={d.id} variant="feature" innerClassName="overflow-hidden" style={{ background: P.panel }}>
+               <div
+                 onClick={() => { setOpenDeck(d); setStep("editor"); }}
+                 style={{ cursor: "pointer", borderBottom: `1px solid ${P.border}`, background: "#f0f0f6", display: "flex", justifyContent: "center" }}
+               >
+                 {d.slides[0] ? (
+                   <SlideCanvas slide={d.slides[0]} templateId={d.theme} width={300} />
+                 ) : (
+                   <div style={{ height: 168, display: "flex", alignItems: "center", color: P.textMuted, fontSize: 12 }}>Empty deck</div>
+                 )}
+               </div>
+               <div style={{ padding: 14, color: P.text }}>
+                 <div style={{ fontSize: 14.5, fontWeight: 700 }}>{d.title}</div>
+                 <div style={{ fontSize: 11.5, color: P.textMuted, marginTop: 4 }}>
+                   {d.business_name ? `${d.business_name} · ` : ""}{d.slides.length} slides · {new Date(d.created_at).toLocaleDateString()}
+                 </div>
+                 <div style={{ display: "flex", gap: 6, marginTop: 12, flexWrap: "wrap" }}>
+                   <button onClick={() => { setOpenDeck(d); setStep("editor"); }} style={{ background: P.primarySoft, border: "none", borderRadius: 8, color: P.primary, padding: "6px 12px", fontSize: 11.5, fontWeight: 700, cursor: "pointer", fontFamily: P.font }}>Open</button>
+                   <button onClick={() => duplicate(d)} style={{ background: P.panel, border: `1px solid ${P.border}`, borderRadius: 8, color: P.textDim, padding: "6px 12px", fontSize: 11.5, fontWeight: 600, cursor: "pointer", fontFamily: P.font }}>Duplicate</button>
+                   <button
+                     onClick={async () => { if (confirm("Delete this presentation?")) { await deleteDeck.mutateAsync(d.id); toast.success("Deleted"); } }}
+                     style={{ background: P.panel, border: `1px solid ${P.border}`, borderRadius: 8, color: P.danger, padding: "6px 12px", fontSize: 11.5, fontWeight: 600, cursor: "pointer", fontFamily: P.font }}
+                   >
+                     Delete
+                   </button>
+                 </div>
+               </div>
+             </HighlightPanel>
+           ))}
+         </div>
+       )}
     </div>
   );
 }

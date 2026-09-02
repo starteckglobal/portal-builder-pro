@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import FunnelChart, { type FunnelStage } from "@/components/charts/funnel-chart";
+import { HighlightPanel } from "@/components/ui/highlight-card";
 
 // ─── STREAMING HELPER ───────────────────────────────────────
 const streamAI = async (
@@ -151,33 +153,20 @@ const Badge = ({ text, color }: { text: string; color: string }) => (
   }}>{text}</span>
 );
 
-const Stat = ({ label, value, sub, icon, color, glow }: any) => {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: C.card, border: `1px solid ${hovered ? color + "40" : C.border}`, borderRadius: 12, padding: "18px 20px",
-        position: "relative" as const, overflow: "hidden" as const,
-        transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
-        transform: hovered ? "translateY(-4px)" : "translateY(0)",
-        boxShadow: hovered ? `0 8px 24px ${glow}` : "none",
-        cursor: "default",
-      }}
-    >
-      <div style={{ position: "absolute" as const, top: -20, right: -20, width: 70, height: 70, borderRadius: "50%", background: glow, filter: "blur(25px)" }} />
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <div>
-          <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase" as const, letterSpacing: 1.5, marginBottom: 6 }}>{label}</div>
-          <div style={{ fontSize: 28, fontFamily: F.display, color, fontWeight: 700 }}>{value}</div>
-          {sub && <div style={{ fontSize: 11, color: C.textDim, marginTop: 3 }}>{sub}</div>}
-        </div>
-        <div style={{ color, opacity: .35 }}><I name={icon} size={24} /></div>
+const Stat = ({ label, value, sub, icon, color, glow }: any) => (
+  <HighlightPanel variant="feature" className="h-full" innerClassName="h-full p-5">
+    <div style={{ position: "absolute" as const, top: -20, right: -20, width: 70, height: 70, borderRadius: "50%", background: glow, filter: "blur(25px)" }} />
+    <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <div>
+        <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase" as const, letterSpacing: 1.5, marginBottom: 6 }}>{label}</div>
+        <div style={{ fontSize: 28, fontFamily: F.display, color, fontWeight: 700 }}>{value}</div>
+        {sub && <div style={{ fontSize: 11, color: C.textDim, marginTop: 3 }}>{sub}</div>}
       </div>
+      <div style={{ color, opacity: .35 }}><I name={icon} size={24} /></div>
     </div>
-  );
-};
+  </HighlightPanel>
+);
+
 
 const Select = ({ value, onChange, options, placeholder }: any) => (
   <select value={value} onChange={(e: any) => onChange(e.target.value)} style={{
@@ -190,24 +179,12 @@ const Select = ({ value, onChange, options, placeholder }: any) => (
   </select>
 );
 
-const ChartCard = ({ children, title }: { children: React.ReactNode; title: string }) => {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: C.card, border: `1px solid ${hovered ? C.accent + "40" : C.border}`, borderRadius: 12, padding: 16,
-        transition: "transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease",
-        transform: hovered ? "translateY(-3px)" : "translateY(0)",
-        boxShadow: hovered ? `0 6px 20px ${C.accentGlow}` : "none",
-      }}
-    >
-      <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: 1, color: C.accent }}>{title}</h3>
-      {children}
-    </div>
-  );
-};
+const ChartCard = ({ children, title }: { children: React.ReactNode; title: string }) => (
+  <HighlightPanel variant="feature" innerClassName="p-4">
+    <h3 style={{ fontSize: 11, fontWeight: 600, margin: "0 0 10px", textTransform: "uppercase", letterSpacing: 1, color: C.accent }}>{title}</h3>
+    {children}
+  </HighlightPanel>
+);
 
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, value } = props;
@@ -387,6 +364,21 @@ export default function ABM() {
     ];
   }, [dbCoverage]);
 
+  const funnelData = useMemo<FunnelStage[]>(() => {
+    const total = Math.max(dbLeads.length, 1);
+    const contacted = dbLeads.filter((lead) => lead.status !== "cold").length;
+    const engaged = dbLeads.filter((lead) => lead.status === "hot").length + Math.ceil(dbLeads.filter((lead) => lead.status === "warm").length / 2);
+    const pitched = dbKanbanCards.filter((card) => ["sent", "followup", "placed"].includes(card.column_name)).length;
+    const won = dbCoverage.length;
+    return [
+      { label: "Awareness", value: total, gradient: [{ offset: 0, color: "#15205d" }, { offset: 0.55, color: "#0059d6" }, { offset: 1, color: "#15a79b" }] },
+      { label: "Interest", value: Math.min(contacted, total), gradient: [{ offset: 0, color: "#175c45" }, { offset: 0.6, color: "#55a951" }, { offset: 1, color: "#f0c45c" }] },
+      { label: "Consideration", value: Math.min(Math.max(engaged, 0), contacted, total), gradient: [{ offset: 0, color: "#f09b00" }, { offset: 1, color: "#ea9f58" }] },
+      { label: "Intent", value: Math.min(Math.max(pitched, 0), Math.max(engaged, 0), contacted, total), gradient: [{ offset: 0, color: "#9d37dc" }, { offset: 1, color: "#e53b86" }] },
+      { label: "Purchase", value: Math.min(Math.max(won, 0), Math.max(pitched, 0), Math.max(engaged, 0), contacted, total), gradient: [{ offset: 0, color: "#ed206a" }, { offset: 1, color: "#4d4ace" }] },
+    ];
+  }, [dbCoverage.length, dbKanbanCards, dbLeads]);
+
   // ─── HANDLERS ───────────────────────────────────────────
   const sendMsg = () => {
     if (!chatInput.trim()) return;
@@ -465,18 +457,28 @@ export default function ABM() {
             <Stat label="Hit Rate" value="38%" sub="18/47 placed" icon="trending" color={C.accent} glow={C.accentGlow} />
             <Stat label="Mentions" value="340" sub="March 2026" icon="monitor" color={C.blue} glow={C.blueGlow} />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
-            <ChartCard title="Coverage Trend">
-              <ResponsiveContainer width="100%" height={160}>
-                <BarChart data={CHART_DATA}><CartesianGrid strokeDasharray="3 3" stroke={C.border} /><XAxis dataKey="month" tick={{ fontSize: 10, fill: C.textDim }} /><YAxis tick={{ fontSize: 10, fill: C.textDim }} /><Tooltip contentStyle={tooltipStyle} cursor={{ fill: C.accentGlow }} /><Bar dataKey="coverage" fill={C.accent} radius={[4, 4, 0, 0]} activeBar={{ fill: "#7dd87d", stroke: C.accent, strokeWidth: 1 }} /></BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-            <ChartCard title="Sentiment Breakdown">
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart><Pie data={sentimentData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" stroke="none" activeShape={renderActiveShape} label={({ name, value }: any) => `${name} ${value}%`} labelLine={false}>{sentimentData.map((e, i) => <Cell key={i} fill={e.color} />)}</Pie><Tooltip contentStyle={tooltipStyle} /></PieChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </div>
+           <HighlightPanel variant="feature" className="mb-[18px]" innerClassName="p-4">
+             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+               <div>
+                 <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: C.white }}>Pipeline funnel</h2>
+                 <p style={{ fontSize: 10, color: C.textDim, margin: "4px 0 0" }}>From first awareness to coverage won</p>
+               </div>
+               <span style={{ fontSize: 9, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>Live CRM data</span>
+             </div>
+             <FunnelChart data={funnelData} color={C.accent} layers={3} gap={4} />
+           </HighlightPanel>
+           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
+             <ChartCard title="Coverage Trend">
+               <ResponsiveContainer width="100%" height={160}>
+                 <BarChart data={CHART_DATA}><CartesianGrid strokeDasharray="3 3" stroke={C.border} /><XAxis dataKey="month" tick={{ fontSize: 10, fill: C.textDim }} /><YAxis tick={{ fontSize: 10, fill: C.textDim }} /><Tooltip contentStyle={tooltipStyle} cursor={{ fill: C.accentGlow }} /><Bar dataKey="coverage" fill={C.accent} radius={[4, 4, 0, 0]} activeBar={{ fill: "#7dd87d", stroke: C.accent, strokeWidth: 1 }} /></BarChart>
+               </ResponsiveContainer>
+             </ChartCard>
+             <ChartCard title="Sentiment Breakdown">
+               <ResponsiveContainer width="100%" height={160}>
+                 <PieChart><Pie data={sentimentData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" stroke="none" activeShape={renderActiveShape} label={({ name, value }: any) => `${name} ${value}%`} labelLine={false}>{sentimentData.map((e, i) => <Cell key={i} fill={e.color} />)}</Pie><Tooltip contentStyle={tooltipStyle} /></PieChart>
+               </ResponsiveContainer>
+             </ChartCard>
+           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <ChartCard title="Client Health Scores">
               {healthScores.map((h, i) => (

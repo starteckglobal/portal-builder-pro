@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { AUTH_LABEL, CATEGORIES, TOOLKITS, type Toolkit } from "@/lib/composioCatalog";
 import { useMCPConnections } from "@/hooks/useMCPConnections";
+import { HighlightPanel } from "@/components/ui/highlight-card";
+
 
 const C = {
   bg: "#080808", surface: "#0f0f0f", card: "#161616", cardH: "#1e1e1e",
@@ -87,9 +89,7 @@ export default function MCPConnectorsPanel() {
 
   return (
     <div>
-      <div style={{
-        background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 18,
-      }}>
+      <HighlightPanel variant="feature" innerClassName="p-[18px]">
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 14 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: C.white }}>MCP Connectors</div>
@@ -126,10 +126,7 @@ export default function MCPConnectorsPanel() {
             {connections.map((c) => {
               const tk = TOOLKITS.find((k) => k.slug === c.toolkit_slug);
               return (
-                <div key={c.id} style={{
-                  background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10,
-                  padding: 12, display: "flex", gap: 10, alignItems: "center",
-                }}>
+                <HighlightPanel key={c.id} variant="feature" innerClassName="p-3 flex gap-2.5 items-center">
                   {tk && <Logo tk={tk} size={30} />}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: C.white }}>{c.toolkit_name}</div>
@@ -138,20 +135,18 @@ export default function MCPConnectorsPanel() {
                       {c.credential_hint ? ` · ${c.credential_hint}` : ""}
                     </div>
                   </div>
-                  <span style={{
-                    fontSize: 9, fontWeight: 700, color: C.accent, background: C.accentGlow,
-                    borderRadius: 20, padding: "3px 8px",
-                  }}>LIVE</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: C.accent, background: C.accentGlow, borderRadius: 20, padding: "3px 8px" }}>LIVE</span>
                   <button onClick={() => { void disconnect(c.toolkit_slug); flash(`${c.toolkit_name} disconnected`); }} style={{
                     background: "none", border: `1px solid ${C.border}`, borderRadius: 6,
                     color: C.hot, fontSize: 10, padding: "4px 8px", cursor: "pointer", fontFamily: F,
                   }}>Remove</button>
-                </div>
+                </HighlightPanel>
               );
             })}
           </div>
         )}
-      </div>
+      </HighlightPanel>
+
 
       {/* ── TOOL BROWSER MODAL ── */}
       {browserOpen && (
