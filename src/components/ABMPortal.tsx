@@ -1033,6 +1033,13 @@ export default function ABM() {
             </div>
           </div>
         </div>}
+
+        {/* ═══ SETTINGS ═══ */}
+        {tab === "settings" && <div style={{ padding: 24, maxWidth: 1100 }}>
+          <h1 style={{ fontSize: 22, fontFamily: F.display, fontWeight: 700, margin: "0 0 4px", color: C.white }}>Settings</h1>
+          <p style={{ color: C.textDim, margin: "0 0 18px", fontSize: 12 }}>Workspace connections and tool access</p>
+          <MCPConnectorsPanel />
+        </div>}
       </main>
 
       {/* CHANGE PASSWORD MODAL */}
