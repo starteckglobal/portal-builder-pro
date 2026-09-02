@@ -532,7 +532,7 @@ export default function ABM() {
         </div>}
 
         {/* ═══ LEADS ═══ */}
-        {tab === "leads" && <div style={{ padding: 24, maxWidth: 1200 }}>
+        
         {tab === "leads" && <div style={{ padding: 24, maxWidth: 1200, filter: crmMono ? "grayscale(1)" : "none", transition: "filter .3s ease" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <h1 style={{ fontSize: 20, fontFamily: F.display, fontWeight: 700, margin: 0, color: C.white }}>Client Leads</h1>
