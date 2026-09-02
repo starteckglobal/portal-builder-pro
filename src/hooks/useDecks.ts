@@ -7,8 +7,13 @@ export interface Slide {
   title: string;
   subtitle?: string;
   bullets: string[];
-  layout: "title" | "bullets" | "two-column" | "image-text" | "closing";
+  layout: "title" | "bullets" | "two-column" | "image-text" | "stats" | "quote" | "closing";
   notes: string;
+}
+
+export interface OutlineItem {
+  title: string;
+  description: string;
 }
 
 export interface Deck {
