@@ -32,9 +32,10 @@ export function useAddRecord(table: string) {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (values: Record<string, any>) => {
+      if (!user) throw new Error("You must be signed in to add a record");
       const { data, error } = await db
         .from(table)
-        .insert({ ...values, user_id: user!.id })
+        .insert({ ...values, user_id: user.id })
         .select()
         .single();
       if (error) throw error;

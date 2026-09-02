@@ -3,10 +3,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Sector } from "recharts";
 import abmLogo from "@/assets/abm-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLeads, useContacts, useCoverage, useKanbanCards, useUpdateKanbanCard, useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, useAIOutputs, useSaveAIOutput, useDeleteAIOutput } from "@/hooks/usePortalData";
+import { useLeads, useContacts, useCoverage, useKanbanCards, useUpdateKanbanCard, useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, useAIOutputs, useSaveAIOutput, useDeleteAIOutput, useAddLead, useAddContact, useAddCoverage, useAddKanbanCard } from "@/hooks/usePortalData";
+import { useAddRecord, useBoilerplates, useCalendarPosts, useChatMessages, useClients, useCompetitorNotes, useMeetingNotes, useRecords, useReports, useROIScenarios } from "@/hooks/useRecords";
 import { seedDataForUser } from "@/lib/seedData";
 import PresentonApp from "@/components/deckbuilder/presenton/PresentonApp";
 import MCPConnectorsPanel from "@/components/settings/MCPConnectorsPanel";
+import AddRecordModal, { type FieldDef, SectionHeader } from "@/components/portal/AddRecordModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -290,12 +292,33 @@ export default function ABM() {
   const { data: dbCoverage = [], isLoading: coverageLoading } = useCoverage();
   const { data: dbKanbanCards = [] } = useKanbanCards();
   const updateKanbanCard = useUpdateKanbanCard();
+  const addLead = useAddLead();
+  const addContact = useAddContact();
+  const addCoverage = useAddCoverage();
+  const addKanbanCard = useAddKanbanCard();
   const { data: dbNotifications = [] } = useNotifications();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
   const { data: aiHistory = [] } = useAIOutputs();
   const saveOutput = useSaveAIOutput();
   const deleteOutput = useDeleteAIOutput();
+  const { data: clients = [] } = useClients();
+  const { data: calendarPosts = [] } = useCalendarPosts();
+  const { data: storedMeetingNotes = [] } = useMeetingNotes();
+  const { data: competitorNotes = [] } = useCompetitorNotes();
+  const { data: storedBoilerplates = [] } = useBoilerplates();
+  const { data: roiScenarios = [] } = useROIScenarios();
+  const { data: storedReports = [] } = useReports();
+  const { data: chatMessages = [] } = useChatMessages();
+  const addRecord = (table: string) => useAddRecord(table);
+  const addClient = addRecord("clients");
+  const addCalendarPost = addRecord("calendar_posts");
+  const addMeetingNote = addRecord("meeting_notes");
+  const addCompetitorNote = addRecord("competitor_notes");
+  const addBoilerplate = addRecord("boilerplates");
+  const addROIScenario = addRecord("roi_scenarios");
+  const addReport = addRecord("reports");
+  const addChatMessage = addRecord("chat_messages");
   const [historyTab, setHistoryTab] = useState<string | null>(null); // which module's history is open
 
   // Seed data on first login
@@ -341,6 +364,7 @@ export default function ABM() {
   const [meetingNotes, setMeetingNotes] = useState("");
   const [meetingLoading, setMeetingLoading] = useState(false);
   const [meetingActions, setMeetingActions] = useState<any[] | null>(null);
+  const [addModal, setAddModal] = useState<{ title: string; fields: FieldDef[]; save: (values: Record<string, any>) => Promise<void> | void } | null>(null);
   const [sentimentUrl, setSentimentUrl] = useState("");
   const [sentimentLoading, setSentimentLoading] = useState(false);
   const [sentimentResult, setSentimentResult] = useState<any>(null);
