@@ -15,6 +15,7 @@ import LiveMeeting from "@/components/meeting/LiveMeeting";
 import { AppSidebar } from "@/components/app-sidebar";
 import FunnelChart, { type FunnelStage } from "@/components/charts/funnel-chart";
 import { HighlightPanel } from "@/components/ui/highlight-card";
+import { SpecularButton } from "@/components/ui/specular-button";
 
 // ─── STREAMING HELPER ───────────────────────────────────────
 const streamAI = async (
