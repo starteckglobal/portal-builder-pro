@@ -430,7 +430,7 @@ export default function ABM() {
               padding: collapsed ? "7px" : "6px 9px", marginBottom: 0, borderRadius: 6,
               border: "none", cursor: "pointer",
               background: tab === n.id ? C.accentGlow : "transparent",
-              color: tab === n.id ? C.accent : C.textDim,
+              color: tab === n.id ? C.accent : C.white,
               fontFamily: F.body, fontSize: 10, fontWeight: 700,
               justifyContent: collapsed ? "center" : "flex-start",
               borderLeft: tab === n.id ? `2px solid ${C.accent}` : "2px solid transparent",
