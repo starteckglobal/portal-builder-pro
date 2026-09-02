@@ -648,11 +648,11 @@ export default function ABM() {
         {tab === "livemeeting" && <LiveMeeting />}
 
         {/* ═══ CHAT ═══ */}
-         {tab === "chat" && <div style={{ display: "flex", height: "100%", flexDirection: "column" }}>
-           <SectionHeader title="Team Chat" onAdd={() => openAdd("Add team message", [
-             { name: "channel", label: "Channel", type: "select", options: CHANNELS.map((c) => c.id), required: true },
-             { name: "body", label: "Message", type: "textarea", required: true, maxLength: 2000 },
-           ], async (v) => { await addChatMessage.mutateAsync({ ...v, author: user?.email || "Team member" }); })} />
+          {tab === "chat" && <div style={{ display: "flex", height: "100%", flexDirection: "column" }}>
+            <SectionHeader title="Team Chat" onAdd={() => openAdd("Add team message", [
+              { name: "channel", label: "Channel", type: "select", options: CHANNELS.map((c) => ({ value: c.id, label: c.name })), required: true },
+              { name: "body", label: "Message", type: "textarea", required: true, maxLength: 2000 },
+            ], async (v) => { await addChatMessage.mutateAsync({ ...v, author: user?.email || "Team member" }); })} />
            <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
            <div style={{ width: 180, borderRight: `1px solid ${C.border}`, background: C.surface, padding: "12px 6px", flexShrink: 0 }}>
             {CHANNELS.map((ch) => (
@@ -664,16 +664,27 @@ export default function ABM() {
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             <div style={{ padding: "10px 16px", borderBottom: `1px solid ${C.border}`, fontSize: 12, fontWeight: 600, color: C.white }}>#{" "}{CHANNELS.find((c) => c.id === chatCh)?.name}</div>
             <div style={{ flex: 1, overflow: "auto", padding: 16 }}>
-              {(msgs[chatCh] || []).map((m: any) => (
-                <div key={m.id} style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 7, background: m.color + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: m.color, flexShrink: 0 }}>{m.avatar}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}><span style={{ fontSize: 11, fontWeight: 600, color: m.color }}>{m.user}</span><span style={{ fontSize: 9, color: C.textMuted }}>{m.time}</span></div>
-                    <div style={{ fontSize: 11, color: C.textDim, lineHeight: 1.5, marginTop: 2, whiteSpace: "pre-wrap" }}>{m.text}</div>
-                    {m.reactions?.length > 0 && <div style={{ display: "flex", gap: 3, marginTop: 3 }}>{m.reactions.map((r: string, i: number) => <span key={i} style={{ fontSize: 12, background: "#1a1a1a", borderRadius: 6, padding: "1px 5px" }}>{r}</span>)}</div>}
-                  </div>
-                </div>
-              ))}
+               {[
+                 ...(msgs[chatCh] || []),
+                 ...chatMessages.filter((m: any) => m.channel === chatCh).map((m: any) => ({
+                   id: m.id,
+                   user: m.author || "Team member",
+                   avatar: (m.author || "TM").slice(0, 2).toUpperCase(),
+                   color: C.accent,
+                   text: m.body,
+                   time: new Date(m.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+                   reactions: [],
+                 })),
+               ].map((m: any) => (
+                 <div key={m.id} style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                   <div style={{ width: 28, height: 28, borderRadius: 7, background: m.color + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: m.color, flexShrink: 0 }}>{m.avatar}</div>
+                   <div style={{ flex: 1 }}>
+                     <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}><span style={{ fontSize: 11, fontWeight: 600, color: m.color }}>{m.user}</span><span style={{ fontSize: 9, color: C.textMuted }}>{m.time}</span></div>
+                     <div style={{ fontSize: 11, color: C.textDim, lineHeight: 1.5, marginTop: 2, whiteSpace: "pre-wrap" }}>{m.text}</div>
+                     {m.reactions?.length > 0 && <div style={{ display: "flex", gap: 3, marginTop: 3 }}>{m.reactions.map((r: string, i: number) => <span key={i} style={{ fontSize: 12, background: "#1a1a1a", borderRadius: 6, padding: "1px 5px" }}>{r}</span>)}</div>}
+                   </div>
+                 </div>
+               ))}
               <div ref={chatEnd} />
             </div>
             <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, display: "flex", gap: 6 }}>
@@ -915,9 +926,9 @@ export default function ABM() {
 
          {/* ═══ ROI CALCULATOR ═══ */}
          {tab === "roi" && <div style={{ padding: 24, maxWidth: 800 }}>
-           <SectionHeader title="ROI Calculator" onAdd={() => openAdd("Save ROI scenario", [
-             { name: "name", label: "Scenario name", required: true, maxLength: 120 },
-             { name: "client", label: "Client", maxLength: 120 },
+             <SectionHeader title="ROI Calculator" onAdd={() => openAdd("Save ROI scenario", [
+              { name: "name", label: "Scenario name", required: true, maxLength: 120 },
+              { name: "client", label: "Client", type: "select", options: [{ value: "", label: "No client" }, ...clientOptions], maxLength: 120 },
              { name: "retainer", label: "Monthly retainer", type: "number", required: true },
              { name: "ad_value", label: "Media value", type: "number", required: true },
              { name: "months", label: "Months", type: "number", required: true, defaultValue: "12" },
@@ -1078,8 +1089,9 @@ export default function ABM() {
                ], (v) => addReport.mutateAsync(v))}>+ Add Report</Btn>
              </div>
            </div>
-          {historyTab === "report" && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Reports</div>
+           {historyTab === "report" && <div style={{ ...cardSx, borderRadius: 10, padding: 14, marginBottom: 14, maxHeight: 300, overflowY: "auto" }}>
+             <div style={{ fontSize: 11, fontWeight: 600, color: C.accent, marginBottom: 8 }}>Saved Reports</div>
+             {storedReports.length > 0 && <div style={{ marginBottom: 8, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}><div style={{ fontSize: 10, color: C.textDim, marginBottom: 4 }}>Portal reports</div>{storedReports.map((r: any) => <div key={r.id} style={{ fontSize: 10, color: C.white, padding: "3px 0" }}>{r.title} <span style={{ color: C.textMuted }}>· {r.period || "No period"}</span></div>)}</div>}
             {aiHistory.filter(h => h.type === "report").length === 0 && <div style={{ fontSize: 10, color: C.textMuted, padding: 10 }}>No saved outputs yet</div>}
             {aiHistory.filter(h => h.type === "report").map(h => (
               <div key={h.id} style={{ borderBottom: `1px solid ${C.border}`, padding: "8px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
