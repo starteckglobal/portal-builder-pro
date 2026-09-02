@@ -419,6 +419,7 @@ export default function ABM() {
           userEmail={user?.email}
           onChangePassword={() => setShowChangePw(true)}
           onSignOut={signOut}
+          onNotifications={() => setShowNotifs(true)}
         />
 
       {/* MAIN */}
