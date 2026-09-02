@@ -1,0 +1,47 @@
+<svg viewBox="0 0 640 330" xmlns="http://www.w3.org/2000/svg" style="font-family: var(--font-sans)">
+  <style>
+    .lbl { font-size: 14px; font-weight: 480; fill: hsl(var(--foreground)); }
+    .sm { font-size: 12px; fill: hsl(var(--muted-foreground)); }
+    .bx { fill: none; stroke: hsl(var(--muted-foreground)); stroke-width: 1; }
+    .zone { fill: none; stroke: hsl(var(--border)); stroke-width: 1; stroke-dasharray: 4 3; }
+    .wire { stroke: hsl(var(--muted-foreground)); stroke-width: 1; fill: none; }
+  </style>
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6" fill="none" stroke="hsl(var(--muted-foreground))" stroke-width="1"/>
+    </marker>
+  </defs>
+
+  <rect class="zone" x="8" y="8" width="240" height="150" rx="8"/>
+  <text class="sm" x="18" y="28">new components</text>
+  <rect class="bx" x="26" y="42" width="200" height="40" rx="8" stroke="hsl(var(--accent))"/>
+  <text class="lbl" x="40" y="66" fill="hsl(var(--accent))">PortalCard</text>
+  <rect class="bx" x="26" y="98" width="200" height="40" rx="8" stroke="hsl(var(--accent))"/>
+  <text class="lbl" x="40" y="122" fill="hsl(var(--accent))">FunnelChart</text>
+
+  <rect class="zone" x="330" y="8" width="302" height="300" rx="8"/>
+  <text class="sm" x="340" y="28">portal surfaces updated</text>
+  <rect class="bx" x="350" y="42" width="262" height="34" rx="8"/>
+  <text class="lbl" x="364" y="64">Dashboard — stats, charts, funnel</text>
+  <rect class="bx" x="350" y="86" width="262" height="34" rx="8"/>
+  <text class="lbl" x="364" y="108">Leads · Kanban · Media lists</text>
+  <rect class="bx" x="350" y="130" width="262" height="34" rx="8"/>
+  <text class="lbl" x="364" y="152">AI tools, history panels, reports</text>
+  <rect class="bx" x="350" y="174" width="262" height="34" rx="8"/>
+  <text class="lbl" x="364" y="196">Settings + MCP toolkit cards</text>
+  <rect class="bx" x="350" y="218" width="262" height="34" rx="8"/>
+  <text class="lbl" x="364" y="240">Deck Builder dashboard cards</text>
+  <rect class="bx" x="350" y="262" width="262" height="34" rx="8"/>
+  <text class="lbl" x="364" y="284">Modals (password, detail popovers)</text>
+
+  <path class="wire" d="M226 62 C280 62 290 59 348 59" marker-end="url(#a)"/>
+  <path class="wire" d="M226 118 C280 118 290 62 348 60" marker-end="url(#a)"/>
+  <path class="wire" d="M248 100 C300 160 300 190 348 191" marker-end="url(#a)"/>
+
+  <circle cx="26" cy="196" r="9" fill="hsl(var(--accent))"/>
+  <text x="26" y="200" text-anchor="middle" font-size="11" fill="hsl(var(--accent-foreground))">1</text>
+  <text class="sm" x="44" y="200">one card component, two intensity levels (feature / panel)</text>
+  <circle cx="26" cy="226" r="9" fill="hsl(var(--accent))"/>
+  <text x="26" y="230" text-anchor="middle" font-size="11" fill="hsl(var(--accent-foreground))">2</text>
+  <text class="sm" x="44" y="230">funnel fed by live lead + coverage data</text>
+</svg>
