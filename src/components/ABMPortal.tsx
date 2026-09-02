@@ -524,7 +524,7 @@ export default function ABM() {
           </div>
 
           {fLeads.map((l) => (
-            <div key={l.id} onClick={() => setSelectedLead(selectedLead?.id === l.id ? null : l)} style={{ background: C.card, border: `1px solid ${l.status === "hot" ? C.hot + "40" : C.border}`, borderRadius: 10, padding: "12px 16px", cursor: "pointer", marginBottom: 5 }}>
+            <div key={l.id} onClick={() => setSelectedLead(selectedLead?.id === l.id ? null : l)} style={{ ...cardSx, border: `1px solid ${l.status === "hot" ? C.hot + "40" : C.border}`, borderRadius: 10, padding: "12px 16px", cursor: "pointer", marginBottom: 5 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ width: 30, height: 30, borderRadius: 7, background: l.status === "hot" ? C.hotGlow : C.border + "40", display: "flex", alignItems: "center", justifyContent: "center" }}>{l.status === "hot" ? <I name="fire" size={14} /> : <I name="leads" size={12} />}</div>
@@ -722,7 +722,7 @@ export default function ABM() {
                <I name="sparkle" size={12} /> {sentimentLoading ? "Analyzing..." : "Analyze Sentiment"}
              </Btn>
           </div>
-          {sentimentResult && <div style={{ background: C.card, border: `1px solid ${sentimentResult.sentiment === "positive" ? C.accent : sentimentResult.sentiment === "negative" ? C.hot : C.blue}40`, borderRadius: 10, padding: 16, marginTop: 14 }}>
+          {sentimentResult && <div style={{ ...cardSx, border: `1px solid ${sentimentResult.sentiment === "positive" ? C.accent : sentimentResult.sentiment === "negative" ? C.hot : C.blue}40`, borderRadius: 10, padding: 16, marginTop: 14 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
               <div><div style={{ fontSize: 9, color: C.textMuted, textTransform: "uppercase" }}>Sentiment</div><div style={{ fontSize: 16, fontWeight: 700, color: sentimentResult.sentiment === "positive" ? C.accent : sentimentResult.sentiment === "negative" ? C.hot : C.blue, textTransform: "capitalize" }}>{sentimentResult.sentiment}</div></div>
               <div><div style={{ fontSize: 9, color: C.textMuted, textTransform: "uppercase" }}>Score</div><div style={{ fontSize: 16, fontWeight: 700, color: C.white }}>{sentimentResult.score}/100</div></div>
@@ -738,7 +738,7 @@ export default function ABM() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 5 }}>
             {Array.from({ length: 7 }, (_, i) => new Date(2026, 3, 9 + i)).map((d, di) => {
               const ds = d.toISOString().split("T")[0]; const today = ds === "2026-04-10";
-              return <div key={di} style={{ background: C.card, border: `1px solid ${today ? C.accent + "50" : C.border}`, borderRadius: 8, padding: 8, minHeight: 160 }}>
+              return <div key={di} style={{ ...cardSx, border: `1px solid ${today ? C.accent + "50" : C.border}`, borderRadius: 8, padding: 8, minHeight: 160 }}>
                 <div style={{ fontSize: 8, color: today ? C.accent : C.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 5 }}>{d.toLocaleDateString("en-US", { weekday: "short" })} {d.getDate()}</div>
                 {[{ t: "10 AM", p: "IG", c: "Launch prep", s: "approved" }, { t: "2 PM", p: "LI", c: "Industry insight", s: "pending" }].filter((_, j) => j <= di % 3).map((p, j) => (
                   <div key={j} style={{ background: "#0c0c0c", borderRadius: 4, padding: 5, marginBottom: 3, borderLeft: `2px solid ${p.s === "approved" ? C.accent : C.blue}`, fontSize: 9 }}>
