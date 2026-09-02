@@ -999,7 +999,7 @@ export default function ABM() {
           <p style={{ color: C.textDim, margin: "0 0 18px", fontSize: 12 }}>Workspace connections and tool access</p>
           <MCPConnectorsPanel />
         </div>}
-      </main>
+      </SidebarInset>
 
       {/* CHANGE PASSWORD MODAL */}
       {showChangePw && (
@@ -1031,6 +1031,7 @@ export default function ABM() {
           </div>
         </div>
       )}
-    </div>
-  );
+      </div>
+    </SidebarProvider>
+
 }
