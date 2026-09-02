@@ -9,10 +9,12 @@ interface Props {
   index?: number;
   total?: number;
   onChange?: (patch: Partial<Slide>) => void;
+  onElementSelect?: (id: string) => void;
+  selectedElementId?: string | null;
 }
 
 /** Renders one slide at 1280x720 and scales it down to `width`. */
-export default function SlideCanvas({ slide, templateId, width = 880, editable, index, total, onChange }: Props) {
+export default function SlideCanvas({ slide, templateId, width = 880, editable, index, total, onChange, onElementSelect, selectedElementId }: Props) {
   const t = getTemplate(templateId);
   const scale = width / 1280;
 
@@ -57,16 +59,17 @@ export default function SlideCanvas({ slide, templateId, width = 880, editable, 
   });
 
   const renderElement = (el: SlideElement) => {
-    const style: React.CSSProperties = { position: "absolute", left: el.x, top: el.y, width: el.width, height: el.height, boxSizing: "border-box", color: el.color || t.text, overflow: "hidden" };
-    if (el.type === "text") return <div key={el.id} style={{ ...style, fontSize: el.variant === "heading" ? 38 : 22, fontWeight: el.variant === "heading" ? 700 : 400, padding: 8 }} contentEditable={editable} suppressContentEditableWarning>{el.text || "Text"}</div>;
-    if (el.type === "image") return <div key={el.id} style={{ ...style, background: t.panel, borderRadius: 12 }}>{el.src ? <img src={el.src} alt="Slide visual" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ height: "100%", display: "grid", placeItems: "center", color: t.dim, fontSize: 18 }}>Image</div>}</div>;
-    if (el.type === "table") return <table key={el.id} style={{ ...style, borderCollapse: "collapse", fontSize: 16 }}>{(el.rows || [["Header", "Value"], ["Item", "100"]]).map((r, ri) => <tbody key={ri}><tr>{r.map((c, ci) => <td key={ci} style={{ border: `1px solid ${t.dim}`, padding: 8, background: ri === 0 ? t.accent : "transparent", color: ri === 0 ? t.bg : t.text }}>{c}</td>)}</tr></tbody>)}</table>;
+    const style: React.CSSProperties = { position: "absolute", left: el.x, top: el.y, width: el.width, height: el.height, boxSizing: "border-box", color: el.color || t.text, overflow: "hidden", outline: editable && selectedElementId === el.id ? `3px solid ${t.accent}` : "none", cursor: editable ? "pointer" : "default" };
+    const select = (e: React.MouseEvent) => { e.stopPropagation(); if (editable) onElementSelect?.(el.id); };
+    if (el.type === "text") return <div key={el.id} onClick={select} style={{ ...style, fontSize: el.variant === "heading" ? 38 : 22, fontWeight: el.variant === "heading" ? 700 : 400, padding: 8 }} contentEditable={editable} suppressContentEditableWarning onBlur={(e) => onChange?.({ elements: (slide.elements || []).map((item) => item.id === el.id ? { ...item, text: e.currentTarget.textContent || "" } : item) })}>{el.text || "Text"}</div>;
+    if (el.type === "image") return <div key={el.id} onClick={select} style={{ ...style, background: t.panel, borderRadius: 12 }}>{el.src ? <img src={el.src} alt="Slide visual" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ height: "100%", display: "grid", placeItems: "center", color: t.dim, fontSize: 18 }}>Image</div>}</div>;
+    if (el.type === "table") return <table key={el.id} onClick={select} style={{ ...style, borderCollapse: "collapse", fontSize: 16 }}>{(el.rows || [["Header", "Value"], ["Item", "100"]]).map((r, ri) => <tbody key={ri}><tr>{r.map((c, ci) => <td key={ci} style={{ border: `1px solid ${t.dim}`, padding: 8, background: ri === 0 ? t.accent : "transparent", color: ri === 0 ? t.bg : t.text }}>{c}</td>)}</tr></tbody>)}</table>;
     if (el.type === "chart") {
       const vals = (el.data || [{ value: 35 }, { value: 70 }, { value: 52 }, { value: 88 }]).map((d) => Number(d.value || 0));
-      return <div key={el.id} style={{ ...style, display: "flex", alignItems: "flex-end", gap: 12, padding: 14, borderLeft: `1px solid ${t.dim}`, borderBottom: `1px solid ${t.dim}` }}>{vals.map((v, i) => <div key={i} style={{ flex: 1, height: `${Math.max(8, Math.min(100, v))}%`, background: i % 2 ? t.accent : t.dim, borderRadius: "5px 5px 0 0" }} />)}</div>;
+      return <div key={el.id} onClick={select} style={{ ...style, display: "flex", alignItems: "flex-end", gap: 12, padding: 14, borderLeft: `1px solid ${t.dim}`, borderBottom: `1px solid ${t.dim}` }}>{vals.map((v, i) => <div key={i} style={{ flex: 1, height: `${Math.max(8, Math.min(100, v))}%`, background: i % 2 ? t.accent : t.dim, borderRadius: "5px 5px 0 0" }} />)}</div>;
     }
-    if (el.type === "infographic") return <div key={el.id} style={{ ...style, display: "flex", alignItems: "center", gap: 10 }}>{[1, 2, 3].map((n) => <div key={n} style={{ flex: 1, textAlign: "center" }}><div style={{ width: 54, height: 54, borderRadius: 50, background: t.accent, color: t.bg, display: "grid", placeItems: "center", margin: "auto", fontWeight: 800 }}>{n}</div><div style={{ marginTop: 8, fontSize: 15 }}>Step {n}</div></div>)}</div>;
-    return <div key={el.id} style={{ ...style, background: el.color || t.accent, borderRadius: el.variant === "circle" ? "50%" : 10, opacity: .9 }} />;
+    if (el.type === "infographic") return <div key={el.id} onClick={select} style={{ ...style, display: "flex", alignItems: "center", gap: 10 }}>{[1, 2, 3].map((n) => <div key={n} style={{ flex: 1, textAlign: "center" }}><div style={{ width: 54, height: 54, borderRadius: 50, background: t.accent, color: t.bg, display: "grid", placeItems: "center", margin: "auto", fontWeight: 800 }}>{n}</div><div style={{ marginTop: 8, fontSize: 15 }}>Step {n}</div></div>)}</div>;
+    return <div key={el.id} onClick={select} style={{ ...style, background: el.color || t.accent, borderRadius: el.variant === "circle" ? "50%" : 10, opacity: .9 }} />;
   };
 
   let body: React.ReactNode;

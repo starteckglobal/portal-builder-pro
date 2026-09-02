@@ -25,6 +25,7 @@ export default function PresentationEditor({ deck, onBack }: { deck: Deck; onBac
   const [chatBusy, setChatBusy] = useState(false);
   const [history, setHistory] = useState<Slide[][]>([]);
   const [redo, setRedo] = useState<Slide[][]>([]);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const updateDeck = useUpdateDeck();
   const ref = useRef<ReturnType<typeof setTimeout>>();
   const first = useRef(true);
@@ -181,8 +182,10 @@ export default function PresentationEditor({ deck, onBack }: { deck: Deck; onBac
           </div>
 
           <div style={{ boxShadow: P.shadow, borderRadius: 12, border: `1px solid ${P.border}` }}>
-            <SlideCanvas slide={cur} templateId={template} width={860} editable index={idx} total={slides.length} onChange={(p) => patch(idx, p)} />
+            <SlideCanvas slide={cur} templateId={template} width={860} editable index={idx} total={slides.length} onChange={(p) => patch(idx, p)} onElementSelect={setSelectedElementId} selectedElementId={selectedElementId} />
           </div>
+
+          {selectedElementId && cur.elements?.some((el) => el.id === selectedElementId) && <ElementInspector element={cur.elements.find((el) => el.id === selectedElementId)!} onChange={(next) => patch(idx, { elements: cur.elements!.map((el) => el.id === selectedElementId ? { ...el, ...next } : el) })} onDelete={() => { patch(idx, { elements: cur.elements!.filter((el) => el.id !== selectedElementId) }); setSelectedElementId(null); }} />}
 
           <div style={{ width: 860, background: "#fff", border: `1px solid ${P.border}`, borderRadius: 14, padding: 14 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: P.textDim, marginBottom: 6 }}>BULLETS (one per line)</div>
@@ -212,6 +215,10 @@ export default function PresentationEditor({ deck, onBack }: { deck: Deck; onBac
       </div>
     </div>
   );
+}
+
+function ElementInspector({ element, onChange, onDelete }: { element: SlideElement; onChange: (patch: Partial<SlideElement>) => void; onDelete: () => void }) {
+  return <div style={{ width: 860, background: "#fff", border: `1px solid ${P.border}`, borderRadius: 14, padding: 14, display: "flex", alignItems: "end", gap: 10 }}><strong style={{ fontSize: 12, alignSelf: "center", textTransform: "capitalize" }}>{element.type}</strong>{(["x", "y", "width", "height"] as const).map((field) => <label key={field} style={{ fontSize: 10, color: P.textMuted }}>{field.toUpperCase()}<input type="number" value={element[field]} onChange={(e) => onChange({ [field]: Number(e.target.value) })} style={{ display: "block", width: 72, marginTop: 3, border: `1px solid ${P.border}`, borderRadius: 7, padding: 6, fontFamily: P.font }} /></label>)}<label style={{ fontSize: 10, color: P.textMuted }}>COLOR<input type="color" value={element.color || "#625df5"} onChange={(e) => onChange({ color: e.target.value })} style={{ display: "block", width: 44, height: 31, marginTop: 3 }} /></label><button onClick={onDelete} style={{ border: `1px solid #fecaca`, color: "#dc2626", background: "#fff", borderRadius: 8, padding: "8px 12px", marginLeft: "auto", cursor: "pointer" }}>Delete</button></div>;
 }
 
 const getLayoutOptions = (templateId: string) => TEMPLATES.find((t) => t.id === templateId)?.layouts || [];
