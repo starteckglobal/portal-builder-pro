@@ -8,6 +8,8 @@ import Index from "./pages/Index.tsx";
 import AuthPage from "./pages/AuthPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import PresentonApp from "@/components/deckbuilder/presenton/PresentonApp";
+import { ShootingStars } from "@/components/ui/shooting-stars";
+import { StarsBackground } from "@/components/ui/stars-background";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,10 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
+        <div className="fixed inset-0 -z-10 pointer-events-none bg-background">
+          <StarsBackground />
+          <ShootingStars />
+        </div>
         <Toaster />
         <Sonner />
         <BrowserRouter>
